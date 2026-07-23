@@ -571,34 +571,40 @@
       font-weight: 800;
     }
 
+    * {
+      hyphens: none !important;
+      -webkit-hyphens: none !important;
+      word-break: normal !important;
+    }
+
     .tasks-grid {
       display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
-      gap: 1.2rem;
+      grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+      gap: 0.8rem;
     }
 
     .task-card {
       background: rgba(255, 255, 255, 0.14);
       backdrop-filter: blur(12px);
       -webkit-backdrop-filter: blur(12px);
-      border: 3px solid rgba(255, 255, 255, 0.25);
-      border-radius: 24px;
-      padding: 1.2rem 1.4rem;
+      border: 2.5px solid rgba(255, 255, 255, 0.25);
+      border-radius: 20px;
+      padding: 0.75rem 1rem;
       display: flex;
       align-items: center;
-      gap: 1.2rem;
+      gap: 0.8rem;
       cursor: pointer;
       transition: all 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);
       position: relative;
-      box-shadow: 0 8px 20px rgba(0,0,0,0.2);
+      box-shadow: 0 6px 16px rgba(0,0,0,0.18);
       box-sizing: border-box;
       overflow: hidden;
     }
 
     .task-card:hover {
-      transform: translateY(-4px);
+      transform: translateY(-3px);
       border-color: rgba(255, 255, 255, 0.5);
-      box-shadow: 0 12px 28px rgba(0,0,0,0.3);
+      box-shadow: 0 10px 24px rgba(0,0,0,0.25);
     }
 
     .task-card:active {
@@ -617,11 +623,11 @@
     }
 
     .task-emoji {
-      font-size: 2.8rem;
-      min-width: 60px;
-      height: 60px;
+      font-size: 2.2rem;
+      min-width: 48px;
+      height: 48px;
       background: rgba(255, 255, 255, 0.18);
-      border-radius: 20px;
+      border-radius: 16px;
       display: flex;
       align-items: center;
       justify-content: center;
@@ -632,16 +638,18 @@
     .task-info {
       flex: 1;
       min-width: 0;
-      word-wrap: break-word;
-      overflow-wrap: break-word;
     }
 
     .task-title {
-      font-size: 1.3rem;
+      font-family: var(--font-heading);
+      font-size: 1.15rem;
       font-weight: 700;
-      line-height: 1.4;
+      line-height: 1.35;
       letter-spacing: 0.2px;
-      margin-bottom: 0.3rem;
+      margin-bottom: 0.2rem;
+      hyphens: none !important;
+      -webkit-hyphens: none !important;
+      word-break: normal !important;
     }
 
     .time-badge {
@@ -651,9 +659,9 @@
       background: rgba(251, 191, 36, 0.22);
       border: 1.5px solid #fbbf24;
       color: #fef08a;
-      padding: 0.15rem 0.6rem;
+      padding: 0.12rem 0.55rem;
       border-radius: 12px;
-      font-size: 0.85rem;
+      font-size: 0.82rem;
       font-weight: 800;
       white-space: nowrap;
     }
@@ -661,18 +669,19 @@
     .btn-start-timer {
       display: inline-flex;
       align-items: center;
-      gap: 0.4rem;
+      gap: 0.35rem;
       background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
-      border: 2px solid rgba(255, 255, 255, 0.4);
+      border: 1.5px solid rgba(255, 255, 255, 0.4);
       color: white;
-      font-size: 0.85rem;
+      font-family: var(--font-heading);
+      font-size: 0.82rem;
       font-weight: 800;
-      padding: 0.3rem 0.8rem;
-      border-radius: 14px;
+      padding: 0.25rem 0.75rem;
+      border-radius: 12px;
       cursor: pointer;
-      box-shadow: 0 4px 10px rgba(217, 119, 6, 0.3);
+      box-shadow: 0 3px 8px rgba(217, 119, 6, 0.3);
       transition: all 0.2s ease;
-      margin-top: 0.5rem;
+      margin-top: 0.35rem;
     }
     .btn-start-timer:hover {
       transform: scale(1.05);
@@ -683,12 +692,45 @@
     }
 
     .task-reward {
-      font-size: 1.05rem;
+      font-family: var(--font-heading);
+      font-size: 1.25rem;
       font-weight: 900;
       color: #38bdf8;
       display: flex;
       align-items: center;
-      gap: 0.3rem;
+      gap: 0.35rem;
+      margin-top: 0.15rem;
+    }
+
+    .crystal-icon-large {
+      font-size: 1.5rem;
+      filter: drop-shadow(0 2px 5px rgba(0,0,0,0.3));
+      display: inline-block;
+      transform: scale(1.15);
+    }
+
+    /* Icon-only Fullscreen button */
+    .btn-icon-fullscreen {
+      width: 44px;
+      height: 44px;
+      border-radius: 16px;
+      background: rgba(255, 255, 255, 0.18);
+      border: 2px solid rgba(255, 255, 255, 0.3);
+      color: white;
+      font-size: 1.3rem;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      flex-shrink: 0;
+    }
+    .btn-icon-fullscreen:hover {
+      background: rgba(255, 255, 255, 0.3);
+      transform: scale(1.08);
+    }
+    .btn-icon-fullscreen:active {
+      transform: scale(0.92);
     }
 
     .task-checkbox {
@@ -1652,8 +1694,8 @@
         </div>
 
         <div class="header-right">
-          <button class="btn-header-action" onclick="toggleFullscreen()" title="Режим на весь экран">
-            <span>🖥️</span> <span>На весь экран</span>
+          <button class="btn-icon-fullscreen" onclick="toggleFullscreen()" title="Режим на весь экран">
+            🖥️
           </button>
 
           <button class="btn-parent-lock" id="parent-lock-btn" onclick="toggleParentProtection()" title="Переключить защиту от случайных кликов">
@@ -2437,7 +2479,7 @@
                 ${task.title}
                 ${task.duration ? `<span class="time-badge" style="margin-left:0.4rem;">⏱️ ${task.duration}</span>` : ''}
               </div>
-              <div class="task-reward">+${task.crystals} 💎</div>
+              <div class="task-reward">+${task.crystals} <span class="crystal-icon-large">💎</span></div>
               ${timerBtnHtml}
             </div>
             <div class="task-checkbox">${isDone ? '✓' : ''}</div>
