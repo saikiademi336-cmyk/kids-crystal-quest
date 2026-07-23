@@ -1,0 +1,3047 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="theme-color" content="#6D28D9">
+  <title>Кристальная Копилка | Софья и Богдан</title>
+  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='25' fill='%236d28d9'/><text x='50%' y='55%' dominant-baseline='central' text-anchor='middle' font-size='65'>💎</text></svg>">
+  <link rel="apple-touch-icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='25' fill='%236d28d9'/><text x='50%' y='55%' dominant-baseline='central' text-anchor='middle' font-size='65'>💎</text></svg>">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Comfortaa:wght@600;700&family=Rubik:wght@500;600;700;800&family=Nunito:wght@700;800;900&display=swap" rel="stylesheet">
+  
+  <style>
+    /* ==========================================================================
+       DESIGN SYSTEM & BASE STYLES
+       ========================================================================== */
+    :root {
+      --font-heading: 'Comfortaa', 'Rubik', 'Nunito', sans-serif;
+      --font-body: 'Rubik', 'Comfortaa', sans-serif;
+      
+      /* Theme variables - Sofia default */
+      --bg-gradient: linear-gradient(135deg, #2e1065 0%, #3b0764 40%, #581c87 100%);
+      --accent-main: #a855f7;
+      --accent-glow: #c084fc;
+      --card-bg: rgba(255, 255, 255, 0.12);
+      --card-border: rgba(255, 255, 255, 0.22);
+      --card-shadow: 0 12px 32px 0 rgba(0, 0, 0, 0.37);
+      
+      --text-white: #ffffff;
+      --text-sub: #e9d5ff;
+      --crystal-color: #38bdf8;
+      
+      --btn-green: linear-gradient(180deg, #34d399 0%, #059669 100%);
+      --btn-orange: linear-gradient(180deg, #fbbf24 0%, #d97706 100%);
+      --btn-purple: linear-gradient(180deg, #c084fc 0%, #7e22ce 100%);
+      --btn-blue: linear-gradient(180deg, #38bdf8 0%, #0284c7 100%);
+      --btn-red: linear-gradient(180deg, #f87171 0%, #dc2626 100%);
+    }
+
+    /* Theme override for Bogdan */
+    body.theme-bogdan {
+      --bg-gradient: linear-gradient(135deg, #064e3b 0%, #0f766e 40%, #134e4a 100%);
+      --accent-main: #14b8a6;
+      --accent-glow: #2dd4bf;
+      --card-bg: rgba(255, 255, 255, 0.14);
+      --card-border: rgba(255, 255, 255, 0.25);
+      --text-sub: #ccfbf1;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      user-select: none;
+      -webkit-user-select: none;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    html, body {
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+      font-family: var(--font-body);
+      background: var(--bg-gradient);
+      color: var(--text-white);
+    }
+
+    #app {
+      display: flex;
+      flex-direction: column;
+      width: 100vw;
+      height: 100vh;
+      position: relative;
+      overflow: hidden;
+    }
+
+    /* Ambient background particles effects */
+    .bg-bubbles {
+      position: absolute;
+      top: 0; left: 0; right: 0; bottom: 0;
+      pointer-events: none;
+      z-index: 0;
+      overflow: hidden;
+    }
+
+    .bubble {
+      position: absolute;
+      border-radius: 50%;
+      background: rgba(255, 255, 255, 0.06);
+      animation: floatUp 15s infinite linear;
+    }
+
+    @keyframes floatUp {
+      0% { transform: translateY(105vh) scale(0.5) rotate(0deg); opacity: 0; }
+      20% { opacity: 0.6; }
+      80% { opacity: 0.6; }
+      100% { transform: translateY(-10vh) scale(1.2) rotate(360deg); opacity: 0; }
+    }
+
+    /* Canvas for Confetti & Fireworks */
+    #fx-canvas {
+      position: absolute;
+      top: 0; left: 0;
+      width: 100%; height: 100%;
+      pointer-events: none;
+      z-index: 999;
+    }
+
+    /* Flying Crystal overlay container */
+    #flying-crystals-layer {
+      position: absolute;
+      top: 0; left: 0;
+      width: 100%; height: 100%;
+      pointer-events: none;
+      z-index: 1000;
+    }
+
+    .flying-crystal {
+      position: absolute;
+      font-size: 2.8rem;
+      filter: drop-shadow(0 0 12px rgba(56, 189, 248, 0.9));
+      transition: all 0.8s cubic-bezier(0.19, 1, 0.22, 1);
+      z-index: 1001;
+    }
+
+    /* ==========================================================================
+       SCREENS & LAYOUT
+       ========================================================================== */
+    .screen {
+      position: absolute;
+      top: 0; left: 0; right: 0; bottom: 0;
+      display: flex;
+      flex-direction: column;
+      z-index: 1;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.3s ease, transform 0.3s ease;
+      transform: scale(0.98);
+    }
+
+    .screen.active {
+      opacity: 1;
+      pointer-events: auto;
+      transform: scale(1);
+    }
+
+    /* ==========================================================================
+       SCREEN 1: PROFILE SELECTOR
+       ========================================================================== */
+    #screen-profiles {
+      justify-content: center;
+      align-items: center;
+      padding: 2rem;
+      text-align: center;
+    }
+
+    .profiles-header {
+      margin-bottom: 2.5rem;
+    }
+
+    .profiles-header h1 {
+      font-family: var(--font-heading);
+      font-size: 3rem;
+      font-weight: 700;
+      text-shadow: 0 4px 20px rgba(0,0,0,0.4);
+      background: linear-gradient(180deg, #ffffff 0%, #e0e7ff 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      margin-bottom: 0.5rem;
+    }
+
+    .profiles-header p {
+      font-size: 1.3rem;
+      color: var(--text-sub);
+      font-weight: 600;
+    }
+
+    .profiles-grid {
+      display: flex;
+      gap: 3rem;
+      justify-content: center;
+      align-items: center;
+      max-width: 900px;
+      width: 100%;
+    }
+
+    .profile-card {
+      flex: 1;
+      background: rgba(255, 255, 255, 0.15);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      border: 3px solid rgba(255, 255, 255, 0.3);
+      border-radius: 36px;
+      padding: 2.5rem 1.5rem;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      cursor: pointer;
+      box-shadow: 0 20px 40px rgba(0,0,0,0.3);
+      transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .profile-card:hover, .profile-card:active {
+      transform: translateY(-10px) scale(1.03);
+      border-color: rgba(255, 255, 255, 0.7);
+      box-shadow: 0 25px 50px rgba(0,0,0,0.4), 0 0 30px var(--accent-glow);
+    }
+
+    .profile-avatar-wrapper {
+      width: 140px;
+      height: 140px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 5.5rem;
+      margin-bottom: 1.5rem;
+      background: rgba(255, 255, 255, 0.2);
+      border: 4px solid rgba(255, 255, 255, 0.4);
+      box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+      transition: transform 0.3s ease;
+    }
+
+    .profile-card:hover .profile-avatar-wrapper {
+      transform: scale(1.1) rotate(5deg);
+    }
+
+    .profile-card.sofia-card {
+      background: linear-gradient(145deg, rgba(168, 85, 247, 0.35) 0%, rgba(236, 72, 153, 0.35) 100%);
+    }
+
+    .profile-card.bogdan-card {
+      background: linear-gradient(145deg, rgba(20, 184, 166, 0.35) 0%, rgba(16, 185, 129, 0.35) 100%);
+    }
+
+    .profile-name {
+      font-family: var(--font-heading);
+      font-size: 2.4rem;
+      font-weight: 700;
+      margin-bottom: 0.3rem;
+    }
+
+    .profile-age {
+      font-size: 1.1rem;
+      background: rgba(255, 255, 255, 0.25);
+      padding: 0.3rem 1.2rem;
+      border-radius: 20px;
+      font-weight: 800;
+      letter-spacing: 0.5px;
+    }
+
+    .profile-stats-pill {
+      margin-top: 1.2rem;
+      display: flex;
+      align-items: center;
+      gap: 0.6rem;
+      font-size: 1.4rem;
+      font-weight: 900;
+      color: #38bdf8;
+      background: rgba(0, 0, 0, 0.3);
+      padding: 0.5rem 1.4rem;
+      border-radius: 25px;
+    }
+
+    /* ==========================================================================
+       MAIN DASHBOARD HEADER
+       ========================================================================== */
+    .app-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 1rem 2rem;
+      background: rgba(0, 0, 0, 0.25);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      border-bottom: 2px solid rgba(255, 255, 255, 0.15);
+      z-index: 10;
+    }
+
+    .header-left {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+    }
+
+    .btn-switch-profile {
+      background: rgba(255, 255, 255, 0.15);
+      border: 2px solid rgba(255, 255, 255, 0.3);
+      border-radius: 20px;
+      padding: 0.6rem 1.2rem;
+      color: white;
+      font-size: 1rem;
+      font-weight: 800;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+
+    .btn-switch-profile:active {
+      transform: scale(0.95);
+      background: rgba(255, 255, 255, 0.25);
+    }
+
+    .active-child-badge {
+      display: flex;
+      align-items: center;
+      gap: 0.8rem;
+      background: rgba(255, 255, 255, 0.15);
+      padding: 0.4rem 1.2rem 0.4rem 0.6rem;
+      border-radius: 30px;
+      border: 2px solid rgba(255, 255, 255, 0.2);
+    }
+
+    .active-child-avatar {
+      font-size: 1.8rem;
+      width: 42px;
+      height: 42px;
+      border-radius: 50%;
+      background: rgba(255, 255, 255, 0.25);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .active-child-name {
+      font-family: var(--font-heading);
+      font-size: 1.4rem;
+      font-weight: 700;
+    }
+
+    .header-center {
+      display: flex;
+      align-items: center;
+      gap: 1.5rem;
+    }
+
+    /* Crystal Balance Counter Badge */
+    .crystal-counter-badge {
+      background: linear-gradient(135deg, rgba(14, 165, 233, 0.4) 0%, rgba(56, 189, 248, 0.2) 100%);
+      border: 3px solid #38bdf8;
+      box-shadow: 0 0 20px rgba(56, 189, 248, 0.4), inset 0 0 15px rgba(56, 189, 248, 0.3);
+      border-radius: 30px;
+      padding: 0.5rem 1.8rem;
+      display: flex;
+      align-items: center;
+      gap: 0.8rem;
+      cursor: pointer;
+      transition: transform 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    }
+
+    .crystal-counter-badge:active {
+      transform: scale(1.08);
+    }
+
+    .crystal-icon {
+      font-size: 2.2rem;
+      filter: drop-shadow(0 0 6px rgba(56, 189, 248, 0.8));
+      animation: pulseGlow 2s infinite ease-in-out;
+    }
+
+    @keyframes pulseGlow {
+      0%, 100% { transform: scale(1); filter: drop-shadow(0 0 6px rgba(56, 189, 248, 0.8)); }
+      50% { transform: scale(1.15); filter: drop-shadow(0 0 16px rgba(56, 189, 248, 1)); }
+    }
+
+    .crystal-count-val {
+      font-family: var(--font-heading);
+      font-size: 2.2rem;
+      font-weight: 700;
+      color: #ffffff;
+      text-shadow: 0 2px 10px rgba(0,0,0,0.5);
+    }
+
+    .header-right {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+    }
+
+    .btn-header-action {
+      background: var(--btn-orange);
+      border: none;
+      color: white;
+      border-radius: 20px;
+      padding: 0.7rem 1.4rem;
+      font-size: 1.1rem;
+      font-weight: 800;
+      display: flex;
+      align-items: center;
+      gap: 0.6rem;
+      cursor: pointer;
+      box-shadow: 0 6px 16px rgba(217, 119, 6, 0.4);
+      transition: all 0.2s ease;
+    }
+
+    .btn-header-action:active {
+      transform: translateY(2px);
+      box-shadow: 0 2px 6px rgba(217, 119, 6, 0.4);
+    }
+
+    .btn-icon-toggle {
+      background: rgba(255, 255, 255, 0.15);
+      border: 2px solid rgba(255, 255, 255, 0.25);
+      width: 48px;
+      height: 48px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.4rem;
+      cursor: pointer;
+      color: white;
+      transition: all 0.2s ease;
+    }
+
+    .btn-icon-toggle:active {
+      transform: scale(0.9);
+    }
+
+    /* ==========================================================================
+       NAVIGATION TABS
+       ========================================================================== */
+    .tab-bar {
+      display: flex;
+      justify-content: center;
+      gap: 1.5rem;
+      padding: 0.8rem 2rem;
+      background: rgba(0,0,0,0.15);
+    }
+
+    .tab-btn {
+      background: rgba(255, 255, 255, 0.1);
+      border: 2px solid rgba(255, 255, 255, 0.2);
+      border-radius: 25px;
+      padding: 0.7rem 2.2rem;
+      font-family: var(--font-heading);
+      font-size: 1.3rem;
+      font-weight: 700;
+      color: var(--text-sub);
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 0.7rem;
+      transition: all 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);
+    }
+
+    .tab-btn.active {
+      background: rgba(255, 255, 255, 0.3);
+      border-color: #ffffff;
+      color: #ffffff;
+      box-shadow: 0 8px 24px rgba(0,0,0,0.25), 0 0 15px rgba(255,255,255,0.4);
+      transform: translateY(-2px) scale(1.04);
+    }
+
+    /* ==========================================================================
+       MAIN CONTENT CONTAINER
+       ========================================================================== */
+    .dashboard-body {
+      flex: 1;
+      overflow-y: auto;
+      padding: 1.5rem 2rem 3rem 2rem;
+      position: relative;
+    }
+
+    /* Smooth Scrollbar */
+    .dashboard-body::-webkit-scrollbar {
+      width: 10px;
+    }
+    .dashboard-body::-webkit-scrollbar-track {
+      background: rgba(0,0,0,0.1);
+      border-radius: 10px;
+    }
+    .dashboard-body::-webkit-scrollbar-thumb {
+      background: rgba(255,255,255,0.25);
+      border-radius: 10px;
+    }
+
+    .tab-content {
+      display: none;
+      animation: fadeIn 0.3s ease;
+    }
+    .tab-content.active {
+      display: block;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(10px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    /* Daily Progress Indicator */
+    .daily-progress-container {
+      background: rgba(255, 255, 255, 0.12);
+      backdrop-filter: blur(10px);
+      border: 2px solid rgba(255, 255, 255, 0.2);
+      border-radius: 24px;
+      padding: 1rem 1.8rem;
+      margin-bottom: 1.8rem;
+      display: flex;
+      align-items: center;
+      gap: 1.5rem;
+    }
+
+    .progress-text-group {
+      display: flex;
+      flex-direction: column;
+      min-width: 200px;
+    }
+
+    .progress-title {
+      font-family: var(--font-heading);
+      font-size: 1.2rem;
+      font-weight: 700;
+    }
+
+    .progress-subtitle {
+      font-size: 0.95rem;
+      color: var(--text-sub);
+      font-weight: 600;
+    }
+
+    .progress-bar-bg {
+      flex: 1;
+      height: 24px;
+      background: rgba(0, 0, 0, 0.3);
+      border-radius: 20px;
+      overflow: hidden;
+      position: relative;
+      box-shadow: inset 0 2px 6px rgba(0,0,0,0.4);
+    }
+
+    .progress-bar-fill {
+      height: 100%;
+      width: 0%;
+      background: linear-gradient(90deg, #34d399 0%, #38bdf8 50%, #c084fc 100%);
+      border-radius: 20px;
+      transition: width 0.6s cubic-bezier(0.34, 1.56, 0.64, 1);
+      box-shadow: 0 0 12px rgba(56, 189, 248, 0.8);
+    }
+
+    /* ==========================================================================
+       TASKS SECTION
+       ========================================================================== */
+    .task-section-title {
+      font-family: var(--font-heading);
+      font-size: 1.6rem;
+      margin: 1.8rem 0 1rem 0;
+      display: flex;
+      align-items: center;
+      gap: 0.8rem;
+    }
+
+    .task-section-title:first-of-type {
+      margin-top: 0;
+    }
+
+    .crystal-badge-pill {
+      background: rgba(56, 189, 248, 0.25);
+      border: 2px solid #38bdf8;
+      color: #ffffff;
+      padding: 0.2rem 0.9rem;
+      border-radius: 18px;
+      font-size: 1.1rem;
+      font-weight: 800;
+    }
+
+    .tasks-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+      gap: 1.2rem;
+    }
+
+    .task-card {
+      background: rgba(255, 255, 255, 0.14);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      border: 3px solid rgba(255, 255, 255, 0.25);
+      border-radius: 24px;
+      padding: 1.2rem 1.4rem;
+      display: flex;
+      align-items: center;
+      gap: 1.2rem;
+      cursor: pointer;
+      transition: all 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);
+      position: relative;
+      box-shadow: 0 8px 20px rgba(0,0,0,0.2);
+      box-sizing: border-box;
+      overflow: hidden;
+    }
+
+    .task-card:hover {
+      transform: translateY(-4px);
+      border-color: rgba(255, 255, 255, 0.5);
+      box-shadow: 0 12px 28px rgba(0,0,0,0.3);
+    }
+
+    .task-card:active {
+      transform: scale(0.97);
+    }
+
+    .task-card.completed {
+      background: rgba(16, 185, 129, 0.25);
+      border-color: #34d399;
+      opacity: 0.85;
+    }
+
+    .task-card.completed .task-title {
+      text-decoration: line-through;
+      color: rgba(255, 255, 255, 0.7);
+    }
+
+    .task-emoji {
+      font-size: 2.8rem;
+      min-width: 60px;
+      height: 60px;
+      background: rgba(255, 255, 255, 0.18);
+      border-radius: 20px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: inset 0 2px 5px rgba(255,255,255,0.2);
+      flex-shrink: 0;
+    }
+
+    .task-info {
+      flex: 1;
+      min-width: 0;
+      word-wrap: break-word;
+      overflow-wrap: break-word;
+    }
+
+    .task-title {
+      font-size: 1.3rem;
+      font-weight: 700;
+      line-height: 1.4;
+      letter-spacing: 0.2px;
+      margin-bottom: 0.3rem;
+    }
+
+    .time-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.25rem;
+      background: rgba(251, 191, 36, 0.22);
+      border: 1.5px solid #fbbf24;
+      color: #fef08a;
+      padding: 0.15rem 0.6rem;
+      border-radius: 12px;
+      font-size: 0.85rem;
+      font-weight: 800;
+      white-space: nowrap;
+    }
+
+    .btn-start-timer {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.4rem;
+      background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+      border: 2px solid rgba(255, 255, 255, 0.4);
+      color: white;
+      font-size: 0.85rem;
+      font-weight: 800;
+      padding: 0.3rem 0.8rem;
+      border-radius: 14px;
+      cursor: pointer;
+      box-shadow: 0 4px 10px rgba(217, 119, 6, 0.3);
+      transition: all 0.2s ease;
+      margin-top: 0.5rem;
+    }
+    .btn-start-timer:hover {
+      transform: scale(1.05);
+      background: linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%);
+    }
+    .btn-start-timer:active {
+      transform: scale(0.95);
+    }
+
+    .task-reward {
+      font-size: 1.05rem;
+      font-weight: 900;
+      color: #38bdf8;
+      display: flex;
+      align-items: center;
+      gap: 0.3rem;
+    }
+
+    .task-checkbox {
+      width: 44px;
+      height: 44px;
+      border-radius: 50%;
+      border: 3px solid rgba(255, 255, 255, 0.4);
+      background: rgba(0, 0, 0, 0.2);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.6rem;
+      color: white;
+      transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+      flex-shrink: 0;
+      margin-left: auto;
+    }
+
+    .task-card.completed .task-checkbox {
+      background: #34d399;
+      border-color: #ffffff;
+      transform: scale(1.1) rotate(5deg);
+      box-shadow: 0 0 15px rgba(52, 211, 153, 0.8);
+    }
+
+    /* ==========================================================================
+       SHOP SECTION
+       ========================================================================== */
+    .shop-tier-header {
+      font-family: var(--font-heading);
+      font-size: 1.7rem;
+      margin: 2rem 0 1.2rem 0;
+      display: flex;
+      align-items: center;
+      gap: 0.8rem;
+    }
+
+    .shop-tier-header:first-of-type {
+      margin-top: 0;
+    }
+
+    .shop-tier-badge {
+      background: var(--btn-orange);
+      color: white;
+      padding: 0.3rem 1.2rem;
+      border-radius: 20px;
+      font-size: 1.2rem;
+      font-weight: 900;
+      box-shadow: 0 4px 12px rgba(217, 119, 6, 0.4);
+    }
+
+    .shop-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+      gap: 1.4rem;
+    }
+
+    .shop-card {
+      background: rgba(255, 255, 255, 0.14);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      border: 3px solid rgba(255, 255, 255, 0.25);
+      border-radius: 28px;
+      padding: 1.5rem;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      text-align: center;
+      position: relative;
+      box-shadow: 0 10px 25px rgba(0,0,0,0.25);
+      transition: all 0.25s ease;
+    }
+
+    .shop-card:hover {
+      transform: translateY(-5px);
+      border-color: rgba(255, 255, 255, 0.5);
+    }
+
+    .shop-card-emoji {
+      font-size: 4rem;
+      margin-bottom: 0.8rem;
+      filter: drop-shadow(0 6px 12px rgba(0,0,0,0.3));
+    }
+
+    .shop-card-title {
+      font-size: 1.25rem;
+      font-weight: 800;
+      line-height: 1.3;
+      margin-bottom: 1rem;
+      min-height: 3.2rem;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .shop-card-bottom {
+      width: 100%;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-top: auto;
+      gap: 0.8rem;
+    }
+
+    .shop-price-tag {
+      font-family: var(--font-heading);
+      font-size: 1.5rem;
+      font-weight: 700;
+      color: #38bdf8;
+      display: flex;
+      align-items: center;
+      gap: 0.4rem;
+      background: rgba(0,0,0,0.3);
+      padding: 0.4rem 1rem;
+      border-radius: 20px;
+    }
+
+    .btn-buy-reward {
+      background: var(--btn-green);
+      border: none;
+      color: white;
+      font-weight: 900;
+      font-size: 1.1rem;
+      padding: 0.7rem 1.4rem;
+      border-radius: 20px;
+      cursor: pointer;
+      box-shadow: 0 6px 16px rgba(5, 150, 105, 0.4);
+      transition: all 0.2s ease;
+    }
+
+    .btn-buy-reward:active {
+      transform: scale(0.94);
+    }
+
+    .btn-buy-reward.disabled {
+      background: rgba(255, 255, 255, 0.15);
+      color: rgba(255, 255, 255, 0.4);
+      box-shadow: none;
+      cursor: not-allowed;
+    }
+
+    /* ==========================================================================
+       REWARD HISTORY TAB
+       ========================================================================== */
+    .history-list {
+      display: flex;
+      flex-direction: column;
+      gap: 1rem;
+      max-width: 800px;
+      margin: 0 auto;
+    }
+
+    .history-item {
+      background: rgba(255, 255, 255, 0.12);
+      border: 2px solid rgba(255, 255, 255, 0.2);
+      border-radius: 20px;
+      padding: 1rem 1.5rem;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .history-item-left {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+    }
+
+    .history-item-emoji {
+      font-size: 2.2rem;
+    }
+
+    .history-item-title {
+      font-size: 1.2rem;
+      font-weight: 700;
+    }
+
+    .history-item-date {
+      font-size: 0.9rem;
+      color: var(--text-sub);
+    }
+
+    .history-item-cost {
+      font-weight: 900;
+      font-size: 1.2rem;
+      color: #f87171;
+    }
+
+    .empty-history {
+      text-align: center;
+      padding: 3rem 1rem;
+      color: var(--text-sub);
+      font-size: 1.3rem;
+      font-weight: 700;
+    }
+
+    /* ==========================================================================
+       MODALS & DIALOGS
+       ========================================================================== */
+    .modal-overlay {
+      position: fixed;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background: rgba(0, 0, 0, 0.75);
+      backdrop-filter: blur(8px);
+      -webkit-backdrop-filter: blur(8px);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 2000;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.3s ease;
+    }
+
+    .modal-overlay.active {
+      opacity: 1;
+      pointer-events: auto;
+    }
+
+    .modal-box {
+      background: linear-gradient(145deg, rgba(46, 16, 101, 0.95) 0%, rgba(88, 28, 135, 0.95) 100%);
+      border: 3px solid rgba(255, 255, 255, 0.3);
+      box-shadow: 0 25px 60px rgba(0,0,0,0.6);
+      border-radius: 36px;
+      padding: 2.5rem;
+      max-width: 520px;
+      width: 90%;
+      text-align: center;
+      transform: scale(0.8);
+      transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+    }
+
+    .modal-overlay.active .modal-box {
+      transform: scale(1);
+    }
+
+    .modal-icon {
+      font-size: 4.5rem;
+      margin-bottom: 1rem;
+    }
+
+    .modal-title {
+      font-family: var(--font-heading);
+      font-size: 2.2rem;
+      margin-bottom: 0.8rem;
+    }
+
+    .modal-desc {
+      font-size: 1.2rem;
+      color: var(--text-sub);
+      line-height: 1.5;
+      margin-bottom: 2rem;
+    }
+
+    .modal-actions {
+      display: flex;
+      gap: 1rem;
+      justify-content: center;
+    }
+
+    .btn-modal {
+      padding: 0.9rem 2rem;
+      border-radius: 22px;
+      font-size: 1.2rem;
+      font-weight: 800;
+      border: none;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      flex: 1;
+    }
+
+    .btn-modal-confirm {
+      background: var(--btn-green);
+      color: white;
+      box-shadow: 0 6px 16px rgba(5, 150, 105, 0.4);
+    }
+
+    .btn-modal-cancel {
+      background: rgba(255, 255, 255, 0.15);
+      border: 2px solid rgba(255, 255, 255, 0.25);
+      color: white;
+    }
+
+    .btn-modal:active {
+      transform: scale(0.95);
+    }
+
+    /* Parent mode input inside modal */
+    .parent-input-group {
+      margin: 1.5rem 0;
+      display: flex;
+      justify-content: center;
+      gap: 1rem;
+    }
+
+    .parent-input {
+      background: rgba(255, 255, 255, 0.15);
+      border: 2px solid rgba(255, 255, 255, 0.3);
+      border-radius: 16px;
+      padding: 0.8rem 1.2rem;
+      font-size: 1.5rem;
+      font-weight: 800;
+      color: white;
+      text-align: center;
+      width: 120px;
+    }
+
+    .btn-parent-lock {
+      background: rgba(255, 255, 255, 0.15);
+      border: 2px solid rgba(255, 255, 255, 0.3);
+      border-radius: 20px;
+      padding: 0.6rem 1.2rem;
+      color: white;
+      font-size: 1rem;
+      font-weight: 800;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+
+    .btn-parent-lock.unlocked {
+      background: rgba(239, 68, 68, 0.3);
+      border-color: #f87171;
+    }
+
+    .parent-math-question {
+      font-family: var(--font-heading);
+      font-size: 2.8rem;
+      font-weight: 700;
+      color: #38bdf8;
+      margin: 1rem 0;
+      background: rgba(0, 0, 0, 0.3);
+      padding: 0.8rem;
+      border-radius: 20px;
+    }
+
+    .parent-math-options {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 1rem;
+      margin-top: 1rem;
+    }
+
+    .btn-math-opt {
+      background: rgba(255, 255, 255, 0.18);
+      border: 2px solid rgba(255, 255, 255, 0.3);
+      border-radius: 20px;
+      padding: 1rem;
+      font-size: 1.8rem;
+      font-weight: 800;
+      color: white;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+
+    .btn-math-opt:active {
+      transform: scale(0.95);
+      background: var(--btn-green);
+    }
+
+    /* Parent Auth Modal Tabs & Keypad */
+    .parent-mode-tabs {
+      display: flex;
+      gap: 0.8rem;
+      justify-content: center;
+      margin-bottom: 1.2rem;
+    }
+
+    .parent-tab-btn {
+      background: rgba(255, 255, 255, 0.15);
+      border: 2px solid rgba(255, 255, 255, 0.25);
+      border-radius: 18px;
+      padding: 0.5rem 1rem;
+      color: white;
+      font-weight: 700;
+      font-size: 1rem;
+      cursor: pointer;
+    }
+
+    .parent-tab-btn.active {
+      background: var(--btn-orange);
+      border-color: #ffffff;
+      box-shadow: 0 4px 12px rgba(217, 119, 6, 0.4);
+    }
+
+    .parent-auth-content {
+      display: none;
+    }
+    .parent-auth-content.active {
+      display: block;
+    }
+
+    .hold-btn-wrapper {
+      margin: 1rem 0;
+      display: flex;
+      justify-content: center;
+    }
+
+    .btn-hold-action {
+      position: relative;
+      width: 100%;
+      height: 70px;
+      background: rgba(255, 255, 255, 0.15);
+      border: 3px solid rgba(255, 255, 255, 0.35);
+      border-radius: 24px;
+      overflow: hidden;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-family: var(--font-heading);
+      font-size: 1.2rem;
+      font-weight: 700;
+      color: white;
+    }
+
+    .hold-text {
+      position: relative;
+      z-index: 2;
+    }
+
+    .hold-progress-fill {
+      position: absolute;
+      top: 0; left: 0; bottom: 0;
+      width: 0%;
+      background: linear-gradient(90deg, #34d399 0%, #38bdf8 100%);
+      z-index: 1;
+      transition: width 0.05s linear;
+    }
+
+    /* PIN Keypad */
+    .pin-display {
+      font-family: var(--font-heading);
+      font-size: 2.2rem;
+      letter-spacing: 0.5rem;
+      background: rgba(0, 0, 0, 0.3);
+      padding: 0.6rem;
+      border-radius: 18px;
+      margin-bottom: 1rem;
+      color: #38bdf8;
+      min-height: 50px;
+    }
+
+    .pin-keypad {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 0.8rem;
+      max-width: 280px;
+      margin: 0 auto;
+    }
+
+    .btn-pin-key {
+      background: rgba(255, 255, 255, 0.18);
+      border: 2px solid rgba(255, 255, 255, 0.3);
+      border-radius: 18px;
+      padding: 0.8rem;
+      font-size: 1.5rem;
+      font-weight: 800;
+      color: white;
+      cursor: pointer;
+      transition: all 0.15s ease;
+    }
+
+    .btn-pin-key:active {
+      transform: scale(0.9);
+      background: rgba(255, 255, 255, 0.35);
+    }
+
+    /* ==========================================================================
+       SCHEDULE TIMELINE STYLES
+       ========================================================================== */
+    .schedule-header-bar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      background: rgba(255, 255, 255, 0.12);
+      backdrop-filter: blur(10px);
+      border: 2px solid rgba(255, 255, 255, 0.2);
+      border-radius: 24px;
+      padding: 0.8rem 1.4rem;
+      margin-bottom: 1.5rem;
+      gap: 1rem;
+      flex-wrap: wrap;
+    }
+
+    .schedule-day-picker {
+      display: flex;
+      gap: 0.5rem;
+      background: rgba(0, 0, 0, 0.25);
+      padding: 0.3rem;
+      border-radius: 20px;
+    }
+
+    .btn-day-toggle {
+      background: transparent;
+      border: none;
+      color: var(--text-sub);
+      font-size: 1.05rem;
+      font-weight: 800;
+      padding: 0.5rem 1.2rem;
+      border-radius: 16px;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+
+    .btn-day-toggle.active {
+      background: #ffffff;
+      color: #3b0764;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+    }
+
+    .schedule-time-now {
+      font-family: var(--font-heading);
+      font-size: 1.3rem;
+      font-weight: 700;
+      color: #38bdf8;
+      background: rgba(0, 0, 0, 0.3);
+      padding: 0.4rem 1.2rem;
+      border-radius: 18px;
+    }
+
+    .btn-edit-schedule {
+      background: var(--btn-orange);
+      border: none;
+      color: white;
+      font-weight: 800;
+      font-size: 1rem;
+      padding: 0.6rem 1.2rem;
+      border-radius: 18px;
+      cursor: pointer;
+      box-shadow: 0 4px 12px rgba(217, 119, 6, 0.4);
+      transition: all 0.2s ease;
+    }
+    .btn-edit-schedule:active {
+      transform: scale(0.95);
+    }
+
+    .current-activity-card {
+      background: linear-gradient(135deg, rgba(245, 158, 11, 0.35) 0%, rgba(234, 88, 12, 0.25) 100%);
+      border: 3px solid #f59e0b;
+      box-shadow: 0 0 25px rgba(245, 158, 11, 0.35);
+      border-radius: 28px;
+      padding: 1.5rem 2rem;
+      margin-bottom: 2rem;
+      display: flex;
+      align-items: center;
+      gap: 1.5rem;
+    }
+
+    .current-act-icon {
+      font-size: 4rem;
+      filter: drop-shadow(0 4px 8px rgba(0,0,0,0.3));
+    }
+
+    .current-act-details {
+      flex: 1;
+    }
+
+    .current-act-badge {
+      display: inline-block;
+      background: #f59e0b;
+      color: white;
+      font-size: 0.9rem;
+      font-weight: 900;
+      padding: 0.2rem 0.8rem;
+      border-radius: 14px;
+      letter-spacing: 0.5px;
+      margin-bottom: 0.4rem;
+    }
+
+    .current-act-title {
+      font-family: var(--font-heading);
+      font-size: 1.8rem;
+      font-weight: 700;
+      line-height: 1.2;
+    }
+
+    .current-act-time {
+      font-size: 1.2rem;
+      font-weight: 800;
+      color: #fef08a;
+      margin-top: 0.3rem;
+    }
+
+    .timeline-container {
+      display: flex;
+      flex-direction: column;
+      gap: 1rem;
+    }
+
+    .timeline-item {
+      background: rgba(255, 255, 255, 0.12);
+      backdrop-filter: blur(10px);
+      border: 2.5px solid rgba(255, 255, 255, 0.2);
+      border-radius: 24px;
+      padding: 1.2rem 1.6rem;
+      display: flex;
+      align-items: center;
+      gap: 1.4rem;
+      transition: all 0.25s ease;
+    }
+
+    .timeline-item.active-now {
+      background: rgba(245, 158, 11, 0.25);
+      border-color: #f59e0b;
+      box-shadow: 0 0 20px rgba(245, 158, 11, 0.3);
+      transform: scale(1.02);
+    }
+
+    .timeline-item.passed {
+      opacity: 0.55;
+    }
+
+    .timeline-time-range {
+      font-family: var(--font-heading);
+      font-size: 1.3rem;
+      font-weight: 700;
+      color: #38bdf8;
+      min-width: 140px;
+      background: rgba(0,0,0,0.3);
+      padding: 0.4rem 0.8rem;
+      border-radius: 16px;
+      text-align: center;
+    }
+
+    .timeline-emoji {
+      font-size: 2.6rem;
+    }
+
+    .timeline-info {
+      flex: 1;
+    }
+
+    .timeline-title {
+      font-size: 1.3rem;
+      font-weight: 700;
+    }
+
+    .timeline-category-tag {
+      display: inline-block;
+      font-size: 0.85rem;
+      font-weight: 800;
+      padding: 0.15rem 0.6rem;
+      border-radius: 10px;
+      background: rgba(255, 255, 255, 0.15);
+      color: var(--text-sub);
+      margin-top: 0.3rem;
+    }
+
+    /* Editor list items */
+    .schedule-editor-item {
+      background: rgba(255, 255, 255, 0.1);
+      border: 1.5px solid rgba(255, 255, 255, 0.2);
+      border-radius: 16px;
+      padding: 0.8rem 1rem;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 0.8rem;
+      margin-bottom: 0.6rem;
+    }
+
+    /* Button for Shared Schedule on Profile Screen */
+    .btn-shared-schedule {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.8rem;
+      background: linear-gradient(135deg, #0284c7 0%, #0369a1 100%);
+      border: 3px solid rgba(255, 255, 255, 0.4);
+      color: white;
+      font-family: var(--font-heading);
+      font-size: 1.4rem;
+      font-weight: 700;
+      padding: 1rem 2.2rem;
+      border-radius: 28px;
+      cursor: pointer;
+      box-shadow: 0 10px 25px rgba(2, 132, 199, 0.4);
+      transition: all 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);
+    }
+    .btn-shared-schedule:hover {
+      transform: translateY(-4px) scale(1.03);
+      box-shadow: 0 15px 30px rgba(2, 132, 199, 0.5);
+    }
+    .btn-shared-schedule:active {
+      transform: scale(0.96);
+    }
+
+    /* ==========================================================================
+       RESPONSIVE DESIGN (PHONES, TABLETS, DESKTOPS)
+       ========================================================================== */
+    @media (max-width: 1024px) {
+      .app-header {
+        padding: 0.8rem 1.2rem;
+      }
+      .dashboard-body {
+        padding: 1.2rem;
+      }
+    }
+
+    @media (max-width: 768px) {
+      .app-header {
+        flex-wrap: wrap;
+        gap: 0.8rem;
+        justify-content: space-between;
+      }
+      .header-left, .header-center, .header-right {
+        gap: 0.5rem;
+      }
+      .btn-parent-lock {
+        font-size: 0.85rem;
+        padding: 0.4rem 0.8rem;
+      }
+      .profiles-grid {
+        flex-direction: column;
+        align-items: center;
+        gap: 1.5rem;
+      }
+      .profile-card {
+        width: 90%;
+        max-width: 360px;
+      }
+      .tasks-grid {
+        grid-template-columns: 1fr;
+      }
+      .shop-grid {
+        grid-template-columns: 1fr;
+      }
+      .modal-box {
+        width: 92%;
+        padding: 1.5rem 1.2rem;
+      }
+      .timeline-item {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 0.8rem;
+      }
+      .timeline-time-range {
+        min-width: auto;
+        width: 100%;
+        text-align: left;
+      }
+    }
+
+    @media (max-width: 480px) {
+      .tab-bar {
+        gap: 0.4rem;
+        flex-wrap: wrap;
+      }
+      .tab-btn {
+        padding: 0.6rem 0.8rem;
+        font-size: 0.95rem;
+        flex: 1 1 auto;
+      }
+      .crystal-count-val {
+        font-size: 1.5rem;
+      }
+      .task-card {
+        padding: 1rem;
+        gap: 0.8rem;
+      }
+      .task-emoji {
+        font-size: 2.2rem;
+        min-width: 48px;
+        height: 48px;
+      }
+      .task-title {
+        font-size: 1.1rem;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <div id="app">
+    <!-- Ambient floating background particles -->
+    <div class="bg-bubbles" id="bg-bubbles"></div>
+
+    <!-- Fireworks & Celebration Canvas -->
+    <canvas id="fx-canvas"></canvas>
+
+    <!-- Flying Crystal Animation Layer -->
+    <div id="flying-crystals-layer"></div>
+
+    <!-- ==========================================================================
+         SCREEN 1: PROFILE SELECTION
+         ========================================================================== -->
+    <div id="screen-profiles" class="screen active">
+      <div class="profiles-header">
+        <h1>✨ Кто будет выполнять задачи? ✨</h1>
+        <p>Выбери свой профиль, чтобы копить кристаллы!</p>
+      </div>
+
+      <div class="profiles-grid">
+        <!-- Sofya Profile Card -->
+        <div class="profile-card sofia-card" onclick="selectProfile('sofia')">
+          <div class="profile-avatar-wrapper" id="profile-card-avatar-sofia">
+            <svg width="76" height="76" viewBox="0 0 100 100" style="vertical-align:middle; filter:drop-shadow(0 6px 12px rgba(0,0,0,0.3));">
+              <!-- Penguin Body -->
+              <ellipse cx="50" cy="55" rx="36" ry="38" fill="#1e1b4b"/>
+              <circle cx="50" cy="38" r="32" fill="#1e1b4b"/>
+              <!-- White Belly & Face Heart Shape -->
+              <ellipse cx="50" cy="58" rx="26" ry="28" fill="#ffffff"/>
+              <ellipse cx="40" cy="36" rx="14" ry="16" fill="#ffffff"/>
+              <ellipse cx="60" cy="36" rx="14" ry="16" fill="#ffffff"/>
+              <!-- Joyful Sparkly Eyes -->
+              <circle cx="41" cy="34" r="5.5" fill="#0f172a"/>
+              <circle cx="59" cy="34" r="5.5" fill="#0f172a"/>
+              <circle cx="43" cy="32" r="2.2" fill="#ffffff"/>
+              <circle cx="61" cy="32" r="2.2" fill="#ffffff"/>
+              <circle cx="39.5" cy="36" r="1" fill="#ffffff"/>
+              <circle cx="57.5" cy="36" r="1" fill="#ffffff"/>
+              <!-- Rosy Cheeks -->
+              <ellipse cx="32" cy="42" rx="5.5" ry="3.5" fill="#fda4af"/>
+              <ellipse cx="68" cy="42" rx="5.5" ry="3.5" fill="#fda4af"/>
+              <!-- Wide Happy Smiling Beak -->
+              <path d="M42 39 Q50 51 58 39 Q50 43 42 39 Z" fill="#fb923c"/>
+              <!-- Cute Pink Bow -->
+              <path d="M42 16 L50 20 L42 24 Z" fill="#f43f5e"/>
+              <path d="M58 16 L50 20 L58 24 Z" fill="#f43f5e"/>
+              <circle cx="50" cy="20" r="3.5" fill="#ffe4e6"/>
+              <!-- Happy Waving Flippers -->
+              <ellipse cx="15" cy="52" rx="7" ry="16" fill="#1e1b4b" transform="rotate(30 15 52)"/>
+              <ellipse cx="85" cy="52" rx="7" ry="16" fill="#1e1b4b" transform="rotate(-30 85 52)"/>
+              <!-- Orange Feet -->
+              <ellipse cx="38" cy="90" rx="9" ry="5" fill="#fb923c"/>
+              <ellipse cx="62" cy="90" rx="9" ry="5" fill="#fb923c"/>
+            </svg>
+          </div>
+          <div class="profile-name">Софья</div>
+          <div class="profile-age">7 лет</div>
+          <div class="profile-stats-pill">
+            <span>💎</span> <span id="profile-card-crystals-sofia">0</span>
+          </div>
+        </div>
+
+        <!-- Bogdan Profile Card -->
+        <div class="profile-card bogdan-card" onclick="selectProfile('bogdan')">
+          <div class="profile-avatar-wrapper">🦖</div>
+          <div class="profile-name">Богдан</div>
+          <div class="profile-age">4 года</div>
+          <div class="profile-stats-pill">
+            <span>💎</span> <span id="profile-card-crystals-bogdan">0</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Shared Schedule Button for Both Children -->
+      <div style="margin-top: 2.5rem; text-align: center;">
+        <button class="btn-shared-schedule" onclick="showScheduleScreen()">
+          <span>📅</span> <span>Общий распорядок дня</span>
+        </button>
+      </div>
+    </div>
+
+    <!-- ==========================================================================
+         SCREEN 2: SHARED SCHEDULE SCREEN
+         ========================================================================== -->
+    <div id="screen-schedule" class="screen">
+      <header class="app-header">
+        <div class="header-left">
+          <button class="btn-switch-profile" onclick="showProfileSelector()">
+            <span>👈</span> <span>К выбору профилей</span>
+          </button>
+        </div>
+        <div class="header-center">
+          <h2 style="font-family: var(--font-heading); font-size: 1.5rem; color: white;">📅 Общий распорядок дня</h2>
+        </div>
+        <div class="header-right">
+          <button class="btn-edit-schedule" onclick="openScheduleEditor()">
+            ✏️ Редактировать
+          </button>
+        </div>
+      </header>
+
+      <main class="dashboard-body" style="max-width: 900px; margin: 0 auto; padding-top: 1.5rem;">
+        <div class="schedule-header-bar">
+          <div class="schedule-day-picker">
+            <button class="btn-day-toggle active" id="schedule-day-today-btn" onclick="switchScheduleDay('today')">☀️ Сегодня</button>
+            <button class="btn-day-toggle" id="schedule-day-tomorrow-btn" onclick="switchScheduleDay('tomorrow')">🌙 Завтра</button>
+          </div>
+
+          <div class="schedule-time-now" id="schedule-time-now-display">
+            ⏱️ --:--
+          </div>
+        </div>
+
+        <!-- Highlight Banner for Active Activity -->
+        <div class="current-activity-card" id="current-activity-banner"></div>
+
+        <!-- Timeline Container -->
+        <div class="timeline-container" id="schedule-timeline"></div>
+      </main>
+    </div>
+
+    <!-- ==========================================================================
+         SCREEN 3: MAIN DASHBOARD
+         ========================================================================== -->
+    <div id="screen-dashboard" class="screen">
+      <!-- HEADER -->
+      <header class="app-header">
+        <div class="header-left">
+          <button class="btn-switch-profile" onclick="showProfileSelector()">
+            <span>👈</span> <span>Профили</span>
+          </button>
+
+          <button class="btn-switch-profile" onclick="showScheduleScreen()" style="background: rgba(2, 132, 199, 0.3); border-color: #38bdf8;">
+            <span>📅</span> <span>Распорядок</span>
+          </button>
+
+          <div class="active-child-badge">
+            <div class="active-child-avatar" id="header-avatar">🐧</div>
+            <div class="active-child-name" id="header-child-name">Софья</div>
+          </div>
+        </div>
+
+        <div class="header-center">
+          <div class="crystal-counter-badge" id="crystal-badge" onclick="openParentAdjustModal()" title="Нажми для редактирования баланса">
+            <span class="crystal-icon">💎</span>
+            <span class="crystal-count-val" id="header-crystal-count">0</span>
+          </div>
+        </div>
+
+        <div class="header-right">
+          <button class="btn-parent-lock" id="parent-lock-btn" onclick="toggleParentProtection()" title="Переключить защиту от случайных кликов">
+            🔒 Защита ВКЛ
+          </button>
+
+          <button class="btn-header-action" onclick="confirmNewDay()">
+            <span>☀️</span> <span>Новый день</span>
+          </button>
+
+          <button class="btn-icon-toggle" id="sound-toggle-btn" onclick="toggleSound()" title="Звук">
+            🔊
+          </button>
+        </div>
+      </header>
+
+      <!-- NAVIGATION TABS -->
+      <nav class="tab-bar">
+        <button class="tab-btn active" id="tab-tasks-btn" onclick="switchTab('tasks')">
+          <span>📋</span> <span>Задачи</span>
+        </button>
+        <button class="tab-btn" id="tab-shop-btn" onclick="switchTab('shop')">
+          <span>🎁</span> <span>Магазин</span>
+        </button>
+        <button class="tab-btn" id="tab-history-btn" onclick="switchTab('history')">
+          <span>📜</span> <span>Мои награды</span>
+        </button>
+      </nav>
+
+      <!-- DASHBOARD CONTENT BODY -->
+      <main class="dashboard-body">
+        
+        <!-- TAB 1: TASKS -->
+        <div id="tab-tasks" class="tab-content active">
+          <!-- Daily Progress Bar -->
+          <div class="daily-progress-container">
+            <div class="progress-text-group">
+              <span class="progress-title">Прогресс за сегодня</span>
+              <span class="progress-subtitle" id="progress-text">Выполнено 0 из 0 задач</span>
+            </div>
+            <div class="progress-bar-bg">
+              <div class="progress-bar-fill" id="progress-fill"></div>
+            </div>
+          </div>
+
+          <!-- Dynamic Tasks List (Rendered via JS) -->
+          <div id="tasks-container"></div>
+        </div>
+
+        <!-- TAB 2: SHOP -->
+        <div id="tab-shop" class="tab-content">
+          <!-- Dynamic Shop Grid (Rendered via JS) -->
+          <div id="shop-container"></div>
+        </div>
+
+        <!-- TAB 3: REWARD HISTORY -->
+        <div id="tab-history" class="tab-content">
+          <div id="history-container" class="history-list"></div>
+        </div>
+
+      </main>
+    </div>
+  </div>
+
+  <!-- ==========================================================================
+       MODAL DIALOGS
+       ========================================================================== -->
+  
+  <!-- New Day Modal -->
+  <div class="modal-overlay" id="modal-newday">
+    <div class="modal-box">
+      <div class="modal-icon">☀️</div>
+      <h2 class="modal-title">Начать новый день?</h2>
+      <p class="modal-desc">Все выполненные галочки за сегодня обнулятся, чтобы можно было снова выполнять задачи. Накопленные кристаллы сохранены!</p>
+      <div class="modal-actions">
+        <button class="btn-modal btn-modal-cancel" onclick="closeModal('modal-newday')">Отмена</button>
+        <button class="btn-modal btn-modal-confirm" onclick="startNewDay()">Да, начать!</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Purchase Success Modal -->
+  <div class="modal-overlay" id="modal-purchase">
+    <div class="modal-box">
+      <div class="modal-icon" id="purchase-modal-emoji">🎉</div>
+      <h2 class="modal-title" id="purchase-modal-title">Поздравляем!</h2>
+      <p class="modal-desc" id="purchase-modal-desc">Вы успешно получили награду!</p>
+      <div class="modal-actions">
+        <button class="btn-modal btn-modal-confirm" onclick="closeModal('modal-purchase')">Ура! 🚀</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Parent Verification Challenge Modal -->
+  <div class="modal-overlay" id="modal-parent-check">
+    <div class="modal-box">
+      <div class="modal-icon">🔒</div>
+      <h2 class="modal-title">Контроль родителей</h2>
+      <p class="modal-desc" id="parent-check-action-desc">Решите пример на умножение, чтобы подтвердить действие:</p>
+      
+      <div class="parent-math-question" id="parent-math-question">6 × 7 = ?</div>
+      <div class="parent-math-options" id="parent-math-options"></div>
+
+      <div class="modal-actions" style="margin-top: 1.5rem;">
+        <button class="btn-modal btn-modal-cancel" onclick="closeModal('modal-parent-check')">Отмена</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Parent Adjust Balance Modal -->
+  <div class="modal-overlay" id="modal-parent">
+    <div class="modal-box">
+      <div class="modal-icon">👑</div>
+      <h2 class="modal-title">Настройка кристаллов</h2>
+      <p class="modal-desc">Родители могут вручную изменить количество кристаллов на балансе:</p>
+      <div class="parent-input-group">
+        <button class="btn-modal btn-modal-cancel" style="max-width: 60px;" onclick="adjustCrystalInput(-5)">-5</button>
+        <button class="btn-modal btn-modal-cancel" style="max-width: 60px;" onclick="adjustCrystalInput(-1)">-1</button>
+        <input type="number" id="parent-crystal-val" class="parent-input" value="0">
+        <button class="btn-modal btn-modal-cancel" style="max-width: 60px;" onclick="adjustCrystalInput(1)">+1</button>
+        <button class="btn-modal btn-modal-cancel" style="max-width: 60px;" onclick="adjustCrystalInput(5)">+5</button>
+      </div>
+      <div class="modal-actions">
+        <button class="btn-modal btn-modal-cancel" onclick="closeModal('modal-parent')">Отмена</button>
+        <button class="btn-modal btn-modal-confirm" onclick="saveParentCrystals()">Сохранить</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Interactive Countdown Timer Modal -->
+  <div class="modal-overlay" id="modal-task-timer">
+    <div class="modal-box" style="max-width: 480px; text-align: center;">
+      <div class="modal-icon" id="timer-modal-emoji">⏱️</div>
+      <h2 class="modal-title" id="timer-modal-title" style="font-size: 1.6rem; margin-bottom: 0.3rem;">Таймер задачи</h2>
+      <p class="modal-desc" id="timer-modal-desc" style="margin-bottom: 1.2rem;">Осталось времени:</p>
+
+      <!-- Big Digital Countdown Display -->
+      <div style="position: relative; width: 220px; height: 220px; margin: 0 auto 1.5rem;">
+        <svg width="220" height="220" viewBox="0 0 220 220" style="transform: rotate(-90deg);">
+          <circle cx="110" cy="110" r="95" stroke="rgba(255,255,255,0.15)" stroke-width="14" fill="none"/>
+          <circle id="timer-progress-circle" cx="110" cy="110" r="95" stroke="#f59e0b" stroke-width="14" fill="none" stroke-linecap="round" stroke-dasharray="597" stroke-dashoffset="0" style="transition: stroke-dashoffset 1s linear;"/>
+        </svg>
+        <div style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; display: flex; flex-direction: column; align-items: center; justify-content: center;">
+          <div id="timer-countdown-display" style="font-family: var(--font-heading); font-size: 3.2rem; font-weight: 900; color: #fef08a; text-shadow: 0 4px 12px rgba(0,0,0,0.4);">15:00</div>
+          <div id="timer-status-subtext" style="font-size: 0.95rem; font-weight: 800; opacity: 0.85; margin-top: -0.2rem;">Идёт отсчёт...</div>
+        </div>
+      </div>
+
+      <!-- Controls -->
+      <div class="modal-actions" style="display: flex; gap: 0.8rem; justify-content: center;">
+        <button class="btn-modal btn-modal-cancel" id="timer-toggle-btn" onclick="toggleTaskTimerPause()" style="max-width: 140px;">⏸️ Пауза</button>
+        <button class="btn-modal btn-modal-confirm" onclick="closeTaskTimerModal()" style="max-width: 140px;">Закрыть</button>
+      </div>
+    </div>
+  </div>
+    <div class="modal-box" style="max-width: 680px;">
+      <div class="modal-icon">📅</div>
+      <h2 class="modal-title">Редактор распорядка дня</h2>
+      <p class="modal-desc" id="editor-day-subtitle">Составление распорядка на сегодня:</p>
+
+      <!-- Add New Item Form -->
+      <div style="background: rgba(0,0,0,0.25); padding: 1.2rem; border-radius: 20px; margin-bottom: 1.5rem; text-align: left;">
+        <div style="font-weight: 800; font-size: 1.1rem; margin-bottom: 0.8rem;">➕ Добавить время / событие:</div>
+        <div style="display: grid; grid-template-columns: 1fr 1fr 2fr; gap: 0.6rem; margin-bottom: 0.6rem;">
+          <input type="time" id="new-sc-start" class="parent-input" style="width:100%; font-size:1.1rem;" value="08:00">
+          <input type="time" id="new-sc-end" class="parent-input" style="width:100%; font-size:1.1rem;" value="08:30">
+          <input type="text" id="new-sc-title" class="parent-input" style="width:100%; font-size:1rem; text-align:left; padding:0.6rem 0.9rem;" placeholder="Название (Завтрак)">
+        </div>
+        <div style="display: grid; grid-template-columns: 1fr 2fr 1fr; gap: 0.6rem;">
+          <input type="text" id="new-sc-emoji" class="parent-input" style="width:100%; font-size:1.3rem;" value="🍳">
+          <select id="new-sc-category" class="parent-input" style="width:100%; font-size:1rem; text-align:left; padding:0.6rem;">
+            <option value="Приём пищи">🍽️ Приём пищи</option>
+            <option value="Прогулка">🌳 Прогулка</option>
+            <option value="Занятия">📚 Занятия</option>
+            <option value="Время для игры">🎮 Время для игры</option>
+            <option value="Дневной сон">😴 Дневной сон</option>
+            <option value="Вечерний сон">🌙 Вечерний сон</option>
+            <option value="Гигиена">🪥 Гигиена</option>
+          </select>
+          <button class="btn-modal btn-modal-confirm" style="padding: 0.6rem;" onclick="addScheduleItemFromEditor()">Добавить</button>
+        </div>
+      </div>
+
+      <!-- Current Items List in Editor -->
+      <div id="editor-items-list" style="max-height: 240px; overflow-y: auto; margin-bottom: 1.5rem;"></div>
+
+      <div class="modal-actions">
+        <button class="btn-modal btn-modal-cancel" onclick="resetDefaultSchedule()">Восстановить стандартный</button>
+        <button class="btn-modal btn-modal-confirm" onclick="closeModal('modal-schedule-editor')">Готово 👍</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ==========================================================================
+       JAVASCRIPT LOGIC
+       ========================================================================== -->
+  <script>
+    /* ==========================================================================
+       DATA DEFINITIONS
+       ========================================================================== */
+
+    const TASK_DATA = {
+      sofia: [
+        // 1 Crystal
+        { id: 'sof_1_1', title: 'Почистить зубы (утро)', crystals: 1, emoji: '🪥' },
+        { id: 'sof_1_2', title: 'Почистить зубы (вечер)', crystals: 1, emoji: '🌙' },
+        { id: 'sof_1_3', title: 'Застелить кровать', crystals: 1, emoji: '🛏️' },
+        { id: 'sof_1_4', title: 'Одеться и собраться на улицу вовремя', crystals: 1, emoji: '👗' },
+        { id: 'sof_1_5', title: 'Раздеться после улицы и аккуратно убрать вещи', crystals: 1, emoji: '🧥' },
+        { id: 'sof_1_6', title: 'Собрать игрушки сразу после игры', crystals: 1, emoji: '🧸' },
+        { id: 'sof_1_7', title: 'Сделать гимнастику для глаз', crystals: 1, emoji: '👀' },
+        { id: 'sof_1_8', title: 'Собрать рюкзак на завтра', crystals: 1, emoji: '🎒' },
+        
+        // 2 Crystals
+        { id: 'sof_2_1', title: 'Писать прописи', duration: '15 минут', crystals: 2, emoji: '✍️' },
+        { id: 'sof_2_2', title: 'Чтение книги', duration: '15 минут', crystals: 2, emoji: '📖' },
+        { id: 'sof_2_3', title: 'Занятие математикой', duration: '15 минут', crystals: 2, emoji: '🔢' },
+        { id: 'sof_2_4', title: 'Занятие английским', duration: '15 минут', crystals: 2, emoji: '🔤' },
+        { id: 'sof_2_5', title: 'Тренировка по растяжке', duration: '15 минут', crystals: 2, emoji: '🤸‍♀️' },
+        { id: 'sof_2_6', title: 'Занятия на баланс-борде', duration: '15 минут', crystals: 2, emoji: '⚖️' },
+        
+        // 3 Crystals
+        { id: 'sof_3_1', title: 'Самостоятельная игра без родителей', duration: '30 минут', crystals: 3, emoji: '🧩' },
+        { id: 'sof_3_2', title: 'Не отвлекать маму Юлю или папу от работы', duration: '30 минут', crystals: 3, emoji: '🤫' },
+        { id: 'sof_3_3', title: 'Играть с Богданом без драк и криков', duration: '30 минут', crystals: 3, emoji: '🤝' }
+      ],
+      bogdan: [
+        // 1 Crystal
+        { id: 'bog_1_1', title: 'Почистить зубы (утро)', crystals: 1, emoji: '🪥' },
+        { id: 'bog_1_2', title: 'Почистить зубы (вечер)', crystals: 1, emoji: '🌙' },
+        { id: 'bog_1_3', title: 'Одеться на прогулку', crystals: 1, emoji: '🧥' },
+        { id: 'bog_1_4', title: 'Раздеться после улицы и убрать вещи', crystals: 1, emoji: '👟' },
+        { id: 'bog_1_5', title: 'Собрать игрушки сразу после игры', crystals: 1, emoji: '🧸' },
+        { id: 'bog_1_6', title: 'Утренняя зарядка', crystals: 1, emoji: '🏃‍♂️' },
+
+        // 2 Crystals
+        { id: 'bog_2_1', title: 'Рисование', duration: '15 минут', crystals: 2, emoji: '🎨' },
+        { id: 'bog_2_2', title: 'Лепка из пластилина', duration: '15 минут', crystals: 2, emoji: '🎨' },
+        { id: 'bog_2_3', title: 'Собрать пазл', duration: '15 минут', crystals: 2, emoji: '🧩' },
+        { id: 'bog_2_4', title: 'Занятия с пособием', duration: '15 минут', crystals: 2, emoji: '📖' },
+        { id: 'bog_2_5', title: 'ЛФК для стоп (коврики + упражнения)', duration: '15 минут', crystals: 2, emoji: '🦶' },
+        { id: 'bog_2_6', title: 'Занятия на баланс-борде', duration: '15 минут', crystals: 2, emoji: '⚖️' },
+
+        // 3 Crystals
+        { id: 'bog_3_1', title: 'Самостоятельная игра без родителей', duration: '30 минут', crystals: 3, emoji: '🧩' },
+        { id: 'bog_3_2', title: 'Не отвлекать маму Юлю или папу от работы', duration: '30 минут', crystals: 3, emoji: '🤫' },
+        { id: 'bog_3_3', title: 'Играть с Софьей без драк и криков', duration: '30 минут', crystals: 3, emoji: '🤝' }
+      ]
+    };
+
+    const SHOP_DATA = [
+      {
+        tier: 1,
+        categoryTitle: 'За 1 кристалл (Быстрые радости)',
+        items: [
+          { id: 'shop_1_1', title: 'Лечь спать позже', duration: '30 минут', cost: 1, emoji: '🌙' },
+          { id: 'shop_1_2', title: 'Слушать Алису больше', duration: '30 минут', cost: 1, emoji: '📻' },
+          { id: 'shop_1_3', title: 'Дополнительный десерт или фрукт после обеда/ужина', cost: 1, emoji: '🍨' },
+          { id: 'shop_1_4', title: 'Купание в ванне с пеной', cost: 1, emoji: '🧼' },
+          { id: 'shop_1_5', title: 'Дополнительная книга перед сном', cost: 1, emoji: '📖' }
+        ]
+      },
+      {
+        tier: 5,
+        categoryTitle: 'За 5 кристаллов (Мелкие радости)',
+        items: [
+          { id: 'shop_5_1', title: 'Дополнительный десерт после обеда/ужина', cost: 5, emoji: '🍨' },
+          { id: 'shop_5_2', title: 'Дополнительная сказка на ночь', cost: 5, emoji: '📖' },
+          { id: 'shop_5_3', title: 'Ванна с пеной', cost: 5, emoji: '🧼' }
+        ]
+      },
+      {
+        tier: 15,
+        categoryTitle: 'За 15 кристаллов (Особенное время)',
+        items: [
+          { id: 'shop_15_1', title: 'Пикник в парке возле дома', cost: 15, emoji: '🧺' },
+          { id: 'shop_15_2', title: 'Ночевка в палатке в комнате', cost: 15, emoji: '⛺' },
+          { id: 'shop_15_3', title: 'Свидание один на один с папой или мамой', cost: 15, emoji: '👩‍👧‍👦' },
+          { id: 'shop_15_4', title: 'Вечер любимых настольных игр (правила выбирает ребенок)', cost: 15, emoji: '🎲' },
+          { id: 'shop_15_5', title: 'Право заказать меню на семейный ужин (пицца или любимые макароны)', cost: 15, emoji: '🍕' },
+          { id: 'shop_15_6', title: 'Поход на новую или самую любимую детскую площадку в другом районе', cost: 15, emoji: '🛝' }
+        ]
+      },
+      {
+        tier: 30,
+        categoryTitle: 'За 30 кристаллов (Большие впечатления)',
+        items: [
+          { id: 'shop_30_1', title: 'Поход в зоопарк', cost: 30, emoji: '🦁' },
+          { id: 'shop_30_2', title: 'Поход на скалодром', cost: 30, emoji: '🧗‍♀️' },
+          { id: 'shop_30_3', title: 'Поход в океанариум', cost: 30, emoji: '🐬' },
+          { id: 'shop_30_4', title: 'Поездка на пляж, на природу или в поход', cost: 30, emoji: '🏖️' },
+          { id: 'shop_30_5', title: 'Покупка желанной небольшой игрушки', cost: 30, emoji: '🎁' },
+          { id: 'shop_30_6', title: 'Домашний квест с поиском сокровищ по карте', cost: 30, emoji: '🗺️' }
+        ]
+      },
+      {
+        tier: 50,
+        categoryTitle: 'За 50 кристаллов (Супер-призы)',
+        items: [
+          { id: 'shop_50_1', title: 'Собственная детская банковская карта', cost: 50, emoji: '💳' },
+          { id: 'shop_50_2', title: 'Поход в парк аттракционов', cost: 50, emoji: '🎡' },
+          { id: 'shop_50_3', title: 'Поход в аквапарк', cost: 50, emoji: '🏊‍♂️' }
+        ]
+      }
+    ];
+
+    /* ==========================================================================
+       APP STATE & LOCAL STORAGE
+       ========================================================================== */
+
+    const STORAGE_KEY = 'kids_crystal_quest_state_v2';
+    const BACKUP_KEY = 'kids_crystal_quest_backup_v2';
+
+    let defaultState = {
+      activeProfile: null,
+      soundEnabled: true,
+      parentProtectionEnabled: true,
+      sofia: {
+        crystals: 0,
+        completedTasks: {},
+        history: []
+      },
+      bogdan: {
+        crystals: 0,
+        completedTasks: {},
+        history: []
+      }
+    };
+
+    let appState = loadState();
+
+    function loadState() {
+      try {
+        // Clear old v1 keys if present for clean reset
+        localStorage.removeItem('kids_crystal_quest_state_v1');
+        localStorage.removeItem('kids_crystal_quest_backup_v1');
+
+        const data = localStorage.getItem(STORAGE_KEY) || localStorage.getItem(BACKUP_KEY);
+        if (data) {
+          return Object.assign({}, defaultState, JSON.parse(data));
+        }
+      } catch (e) {
+        console.error('Failed to load state from localStorage', e);
+      }
+      return JSON.parse(JSON.stringify(defaultState));
+    }
+
+    function saveState() {
+      try {
+        const json = JSON.stringify(appState);
+        localStorage.setItem(STORAGE_KEY, json);
+        localStorage.setItem(BACKUP_KEY, json);
+      } catch (e) {
+        console.error('Failed to save state to localStorage', e);
+      }
+    }
+
+    /* ==========================================================================
+       WEB AUDIO SYNTHESIZER
+       ========================================================================== */
+
+    let audioCtx = null;
+
+    function initAudio() {
+      if (!audioCtx) {
+        const AudioContext = window.AudioContext || window.webkitAudioContext;
+        if (AudioContext) {
+          audioCtx = new AudioContext();
+        }
+      }
+      if (audioCtx && audioCtx.state === 'suspended') {
+        audioCtx.resume();
+      }
+    }
+
+    function playSound(type) {
+      if (!appState.soundEnabled) return;
+      initAudio();
+      if (!audioCtx) return;
+
+      const now = audioCtx.currentTime;
+
+      if (type === 'pop') {
+        // Soft organic pop
+        const osc = audioCtx.createOscillator();
+        const gain = audioCtx.createGain();
+        osc.type = 'sine';
+        osc.frequency.setValueAtTime(400, now);
+        osc.frequency.exponentialRampToValueAtTime(800, now + 0.08);
+        gain.gain.setValueAtTime(0.3, now);
+        gain.gain.exponentialRampToValueAtTime(0.01, now + 0.08);
+        osc.connect(gain);
+        gain.connect(audioCtx.destination);
+        osc.start(now);
+        osc.stop(now + 0.08);
+      } 
+      else if (type === 'crystal') {
+        // High-pitched crystal bell sound
+        [1046.5, 1318.5, 1567.98].forEach((freq, i) => {
+          const osc = audioCtx.createOscillator();
+          const gain = audioCtx.createGain();
+          osc.type = 'triangle';
+          osc.frequency.setValueAtTime(freq, now + i * 0.06);
+          gain.gain.setValueAtTime(0.2, now + i * 0.06);
+          gain.gain.exponentialRampToValueAtTime(0.001, now + i * 0.06 + 0.35);
+          osc.connect(gain);
+          gain.connect(audioCtx.destination);
+          osc.start(now + i * 0.06);
+          osc.stop(now + i * 0.06 + 0.35);
+        });
+      }
+      else if (type === 'fanfare') {
+        // Triumphant melody
+        const notes = [523.25, 659.25, 783.99, 1046.50]; // C5, E5, G5, C6
+        notes.forEach((freq, i) => {
+          const osc = audioCtx.createOscillator();
+          const gain = audioCtx.createGain();
+          osc.type = 'sine';
+          osc.frequency.setValueAtTime(freq, now + i * 0.12);
+          gain.gain.setValueAtTime(0.3, now + i * 0.12);
+          gain.gain.exponentialRampToValueAtTime(0.001, now + i * 0.12 + 0.4);
+          osc.connect(gain);
+          gain.connect(audioCtx.destination);
+          osc.start(now + i * 0.12);
+          osc.stop(now + i * 0.12 + 0.4);
+        });
+      }
+      else if (type === 'newday') {
+        // Sunrise chime
+        [440, 554.37, 659.25, 880].forEach((freq, i) => {
+          const osc = audioCtx.createOscillator();
+          const gain = audioCtx.createGain();
+          osc.type = 'sine';
+          osc.frequency.setValueAtTime(freq, now + i * 0.08);
+          gain.gain.setValueAtTime(0.2, now + i * 0.08);
+          gain.gain.exponentialRampToValueAtTime(0.01, now + i * 0.08 + 0.3);
+          osc.connect(gain);
+          gain.connect(audioCtx.destination);
+          osc.start(now + i * 0.08);
+          osc.stop(now + i * 0.08 + 0.3);
+        });
+      }
+    }
+
+    function toggleSound() {
+      appState.soundEnabled = !appState.soundEnabled;
+      const btn = document.getElementById('sound-toggle-btn');
+      btn.innerText = appState.soundEnabled ? '🔊' : '🔇';
+      saveState();
+    }
+
+    /* ==========================================================================
+       CANVAS FIREWORKS & CONFETTI ENGINE
+       ========================================================================== */
+
+    const canvas = document.getElementById('fx-canvas');
+    const ctx = canvas.getContext('2d');
+    let particles = [];
+
+    function resizeCanvas() {
+      canvas.width = window.innerWidth;
+      canvas.height = window.innerHeight;
+    }
+    window.addEventListener('resize', resizeCanvas);
+    resizeCanvas();
+
+    function triggerFireworks() {
+      particles = [];
+      const colors = ['#f43f5e', '#ec4899', '#a855f7', '#3b82f6', '#06b6d4', '#10b981', '#f59e0b', '#fbbf24'];
+      
+      // Create 3 burst points
+      const centers = [
+        { x: canvas.width * 0.25, y: canvas.height * 0.4 },
+        { x: canvas.width * 0.5, y: canvas.height * 0.3 },
+        { x: canvas.width * 0.75, y: canvas.height * 0.4 }
+      ];
+
+      centers.forEach(c => {
+        for (let i = 0; i < 60; i++) {
+          const angle = Math.random() * Math.PI * 2;
+          const speed = Math.random() * 8 + 3;
+          particles.push({
+            x: c.x,
+            y: c.y,
+            vx: Math.cos(angle) * speed,
+            vy: Math.sin(angle) * speed - 2,
+            size: Math.random() * 8 + 4,
+            color: colors[Math.floor(Math.random() * colors.length)],
+            alpha: 1,
+            gravity: 0.15,
+            decay: Math.random() * 0.02 + 0.015
+          });
+        }
+      });
+
+      animateParticles();
+    }
+
+    let animFrame = null;
+    function animateParticles() {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+      particles.forEach((p, idx) => {
+        p.x += p.vx;
+        p.y += p.vy;
+        p.vy += p.gravity;
+        p.alpha -= p.decay;
+
+        ctx.save();
+        ctx.globalAlpha = Math.max(0, p.alpha);
+        ctx.fillStyle = p.color;
+        ctx.beginPath();
+        ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.restore();
+      });
+
+      particles = particles.filter(p => p.alpha > 0);
+
+      if (particles.length > 0) {
+        animFrame = requestAnimationFrame(animateParticles);
+      }
+    }
+
+    /* ==========================================================================
+       FLYING CRYSTALS ANIMATION
+       ========================================================================== */
+
+    function animateFlyingCrystal(startX, startY, count) {
+      const targetBadge = document.getElementById('crystal-badge');
+      if (!targetBadge) return;
+
+      const targetRect = targetBadge.getBoundingClientRect();
+      const targetX = targetRect.left + targetRect.width / 2;
+      const targetY = targetRect.top + targetRect.height / 2;
+
+      for (let i = 0; i < count; i++) {
+        setTimeout(() => {
+          const crystalEl = document.createElement('div');
+          crystalEl.className = 'flying-crystal';
+          crystalEl.innerText = '💎';
+          crystalEl.style.left = `${startX - 20 + (Math.random() * 40 - 20)}px`;
+          crystalEl.style.top = `${startY - 20 + (Math.random() * 40 - 20)}px`;
+
+          document.getElementById('flying-crystals-layer').appendChild(crystalEl);
+
+          // Force reflow
+          crystalEl.getBoundingClientRect();
+
+          // Animate position to counter
+          crystalEl.style.transform = `translate(${targetX - startX}px, ${targetY - startY}px) scale(0.6)`;
+          crystalEl.style.opacity = '0';
+
+          playSound('crystal');
+
+          setTimeout(() => {
+            crystalEl.remove();
+            // Pulse the balance badge
+            targetBadge.style.transform = 'scale(1.25)';
+            setTimeout(() => {
+              targetBadge.style.transform = 'scale(1)';
+            }, 200);
+          }, 800);
+        }, i * 150);
+      }
+    }
+
+    /* ==========================================================================
+       UI CONTROLLERS & RENDERING
+       ========================================================================== */
+
+    function generateBgBubbles() {
+      const container = document.getElementById('bg-bubbles');
+      container.innerHTML = '';
+      for (let i = 0; i < 15; i++) {
+        const b = document.createElement('div');
+        b.className = 'bubble';
+        const size = Math.random() * 60 + 20;
+        b.style.width = `${size}px`;
+        b.style.height = `${size}px`;
+        b.style.left = `${Math.random() * 100}%`;
+        b.style.animationDelay = `${Math.random() * 10}s`;
+        b.style.animationDuration = `${Math.random() * 10 + 10}s`;
+        container.appendChild(b);
+      }
+    }
+
+    function updateProfileCardBalances() {
+      document.getElementById('profile-card-crystals-sofia').innerText = appState.sofia.crystals;
+      document.getElementById('profile-card-crystals-bogdan').innerText = appState.bogdan.crystals;
+    }
+
+    function selectProfile(profileKey) {
+      initAudio();
+      playSound('pop');
+      appState.activeProfile = profileKey;
+      saveState();
+
+      document.body.className = profileKey === 'sofia' ? '' : 'theme-bogdan';
+
+      // Update Header
+      const name = profileKey === 'sofia' ? 'Софья' : 'Богдан';
+      const avatarHtml = profileKey === 'sofia' 
+        ? `<svg width="42" height="42" viewBox="0 0 100 100" style="vertical-align:middle;"><ellipse cx="50" cy="55" rx="36" ry="38" fill="#1e1b4b"/><circle cx="50" cy="38" r="32" fill="#1e1b4b"/><ellipse cx="50" cy="58" rx="26" ry="28" fill="#ffffff"/><ellipse cx="40" cy="36" rx="14" ry="16" fill="#ffffff"/><ellipse cx="60" cy="36" rx="14" ry="16" fill="#ffffff"/><circle cx="41" cy="34" r="5.5" fill="#0f172a"/><circle cx="59" cy="34" r="5.5" fill="#0f172a"/><circle cx="43" cy="32" r="2.2" fill="#ffffff"/><circle cx="61" cy="32" r="2.2" fill="#ffffff"/><ellipse cx="32" cy="42" rx="5.5" ry="3.5" fill="#fda4af"/><ellipse cx="68" cy="42" rx="5.5" ry="3.5" fill="#fda4af"/><path d="M42 39 Q50 51 58 39 Q50 43 42 39 Z" fill="#fb923c"/><path d="M42 16 L50 20 L42 24 Z" fill="#f43f5e"/><path d="M58 16 L50 20 L58 24 Z" fill="#f43f5e"/><circle cx="50" cy="20" r="3.5" fill="#ffe4e6"/><ellipse cx="15" cy="52" rx="7" ry="16" fill="#1e1b4b" transform="rotate(30 15 52)"/><ellipse cx="85" cy="52" rx="7" ry="16" fill="#1e1b4b" transform="rotate(-30 85 52)"/><ellipse cx="38" cy="90" rx="9" ry="5" fill="#fb923c"/><ellipse cx="62" cy="90" rx="9" ry="5" fill="#fb923c"/></svg>`
+        : '🦖';
+      document.getElementById('header-child-name').innerText = name;
+      document.getElementById('header-avatar').innerHTML = avatarHtml;
+
+      // Switch screens
+      document.getElementById('screen-profiles').classList.remove('active');
+      document.getElementById('screen-schedule').classList.remove('active');
+      document.getElementById('screen-dashboard').classList.add('active');
+
+      renderDashboard();
+    }
+
+    function showProfileSelector() {
+      playSound('pop');
+      updateProfileCardBalances();
+      document.getElementById('screen-dashboard').classList.remove('active');
+      document.getElementById('screen-schedule').classList.remove('active');
+      document.getElementById('screen-profiles').classList.add('active');
+    }
+
+    function showScheduleScreen() {
+      initAudio();
+      playSound('pop');
+      document.getElementById('screen-profiles').classList.remove('active');
+      document.getElementById('screen-dashboard').classList.remove('active');
+      document.getElementById('screen-schedule').classList.add('active');
+      renderSchedule();
+    }
+
+    function switchTab(tabKey) {
+      playSound('pop');
+      ['tasks', 'shop', 'history'].forEach(t => {
+        const btn = document.getElementById(`tab-${t}-btn`);
+        const content = document.getElementById(`tab-${t}`);
+        if (btn) btn.classList.toggle('active', t === tabKey);
+        if (content) content.classList.toggle('active', t === tabKey);
+      });
+
+      if (tabKey === 'tasks') renderTasks();
+      if (tabKey === 'shop') renderShop();
+      if (tabKey === 'history') renderHistory();
+    }
+
+    function renderDashboard() {
+      const childData = appState[appState.activeProfile];
+      document.getElementById('header-crystal-count').innerText = childData.crystals;
+
+      renderTasks();
+      renderSchedule();
+      renderShop();
+    }
+
+    function renderTasks() {
+      const childKey = appState.activeProfile;
+      const childData = appState[childKey];
+      const tasksList = TASK_DATA[childKey];
+      const container = document.getElementById('tasks-container');
+      container.innerHTML = '';
+
+      let totalTasks = tasksList.length;
+      let completedCount = 0;
+
+      // Group tasks by crystal reward
+      const groups = { 1: [], 2: [], 3: [] };
+      tasksList.forEach(t => {
+        if (childData.completedTasks[t.id]) completedCount++;
+        if (!groups[t.crystals]) groups[t.crystals] = [];
+        groups[t.crystals].push(t);
+      });
+
+      // Update progress bar
+      const percent = totalTasks > 0 ? Math.round((completedCount / totalTasks) * 100) : 0;
+      document.getElementById('progress-text').innerText = `Выполнено ${completedCount} из ${totalTasks} задач (${percent}%)`;
+      document.getElementById('progress-fill').style.width = `${percent}%`;
+
+      [1, 2, 3].forEach(cost => {
+        if (groups[cost].length === 0) return;
+
+        const titleSection = document.createElement('div');
+        titleSection.className = 'task-section-title';
+        titleSection.innerHTML = `
+          <span>Задачи за</span>
+          <span class="crystal-badge-pill">+${cost} 💎</span>
+        `;
+        container.appendChild(titleSection);
+
+        const grid = document.createElement('div');
+        grid.className = 'tasks-grid';
+
+        groups[cost].forEach(task => {
+          const isDone = !!childData.completedTasks[task.id];
+
+          let timerBtnHtml = '';
+          if (task.duration) {
+            const mins = parseInt(task.duration, 10) || 15;
+            timerBtnHtml = `
+              <div style="margin-top: 0.4rem;">
+                <button class="btn-start-timer" onclick="event.stopPropagation(); startTaskTimer(${mins}, '${escapeHtml(task.title)}', '${task.emoji}')">
+                  <span>⏱️</span> <span>Запустить таймер (${mins} мин)</span>
+                </button>
+              </div>
+            `;
+          }
+
+          const card = document.createElement('div');
+          card.className = `task-card ${isDone ? 'completed' : ''}`;
+          card.onclick = (e) => toggleTask(task.id, task.crystals, e);
+
+          card.innerHTML = `
+            <div class="task-emoji">${task.emoji}</div>
+            <div class="task-info">
+              <div class="task-title">
+                ${task.title}
+                ${task.duration ? `<span class="time-badge" style="margin-left:0.4rem;">⏱️ ${task.duration}</span>` : ''}
+              </div>
+              <div class="task-reward">+${task.crystals} 💎</div>
+              ${timerBtnHtml}
+            </div>
+            <div class="task-checkbox">${isDone ? '✓' : ''}</div>
+          `;
+
+          grid.appendChild(card);
+        });
+
+        container.appendChild(grid);
+      });
+    }
+
+    function toggleTask(taskId, crystalsCount, event) {
+      requireParentVerification(() => {
+        executeToggleTask(taskId, crystalsCount, event);
+      }, 'Подтверждение выполнения задачи');
+    }
+
+    function executeToggleTask(taskId, crystalsCount, event) {
+      initAudio();
+      const childKey = appState.activeProfile;
+      const childData = appState[childKey];
+
+      const isCurrentlyDone = !!childData.completedTasks[taskId];
+
+      if (!isCurrentlyDone) {
+        // Mark task as done
+        childData.completedTasks[taskId] = true;
+        childData.crystals += crystalsCount;
+
+        // Fly animation
+        if (event && event.clientX) {
+          animateFlyingCrystal(event.clientX, event.clientY, crystalsCount);
+        } else {
+          playSound('crystal');
+        }
+      } else {
+        // Uncheck task
+        childData.completedTasks[taskId] = false;
+        childData.crystals = Math.max(0, childData.crystals - crystalsCount);
+        playSound('pop');
+      }
+
+      saveState();
+      renderDashboard();
+    }
+
+    function renderShop() {
+      const childData = appState[appState.activeProfile];
+      const container = document.getElementById('shop-container');
+      container.innerHTML = '';
+
+      SHOP_DATA.forEach(tier => {
+        const header = document.createElement('div');
+        header.className = 'shop-tier-header';
+        header.innerHTML = `
+          <span>${tier.categoryTitle}</span>
+        `;
+        container.appendChild(header);
+
+        const grid = document.createElement('div');
+        grid.className = 'shop-grid';
+
+        tier.items.forEach(item => {
+          const canAfford = childData.crystals >= item.cost;
+
+          const card = document.createElement('div');
+          card.className = 'shop-card';
+
+          card.innerHTML = `
+            <div class="shop-card-emoji">${item.emoji}</div>
+            <div class="shop-card-title">
+              <div>${item.title}</div>
+              ${item.duration ? `<div style="margin-top:0.35rem;"><span class="time-badge">⏱️ ${item.duration}</span></div>` : ''}
+            </div>
+            <div class="shop-card-bottom">
+              <div class="shop-price-tag">💎 ${item.cost}</div>
+              <button class="btn-buy-reward ${canAfford ? '' : 'disabled'}" ${canAfford ? `onclick="buyReward('${item.id}', ${item.cost}, '${escapeHtml(item.title)}', '${item.emoji}')"` : 'disabled'}>
+                ${canAfford ? 'Купить 🎉' : 'Мало 💎'}
+              </button>
+            </div>
+          `;
+
+          grid.appendChild(card);
+        });
+
+        container.appendChild(grid);
+      });
+    }
+
+    function buyReward(itemId, cost, title, emoji) {
+      requireParentVerification(() => {
+        executeBuyReward(itemId, cost, title, emoji);
+      }, `Покупка награды «${title}»`);
+    }
+
+    function executeBuyReward(itemId, cost, title, emoji) {
+      initAudio();
+      const childData = appState[appState.activeProfile];
+
+      if (childData.crystals < cost) return;
+
+      // Deduct crystals
+      childData.crystals -= cost;
+
+      // Log to history
+      childData.history.unshift({
+        id: itemId,
+        title: title,
+        cost: cost,
+        emoji: emoji,
+        date: new Date().toLocaleDateString('ru-RU', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' })
+      });
+
+      saveState();
+      renderDashboard();
+
+      // Trigger celebrate effects
+      playSound('fanfare');
+      triggerFireworks();
+
+      // Show modal
+      document.getElementById('purchase-modal-emoji').innerText = emoji;
+      document.getElementById('purchase-modal-title').innerText = 'Ура! Награда куплена!';
+      document.getElementById('purchase-modal-desc').innerText = `«${title}» — супер! Скажи родителям, чтобы получить награду!`;
+      openModal('modal-purchase');
+    }
+
+    function renderHistory() {
+      const childData = appState[appState.activeProfile];
+      const container = document.getElementById('history-container');
+      container.innerHTML = '';
+
+      if (!childData.history || childData.history.length === 0) {
+        container.innerHTML = `
+          <div class="empty-history">
+            <div>🎁</div>
+            <p>Вы пока не покупали награды.</p>
+            <p style="font-size: 1rem; margin-top: 0.5rem; opacity: 0.7;">Выполняйте задачи и копите кристаллы!</p>
+          </div>
+        `;
+        return;
+      }
+
+      childData.history.forEach(item => {
+        const el = document.createElement('div');
+        el.className = 'history-item';
+        el.innerHTML = `
+          <div class="history-item-left">
+            <div class="history-item-emoji">${item.emoji}</div>
+            <div>
+              <div class="history-item-title">${item.title}</div>
+              <div class="history-item-date">${item.date}</div>
+            </div>
+          </div>
+          <div class="history-item-cost">-${item.cost} 💎</div>
+        `;
+        container.appendChild(el);
+      });
+    }
+
+    /* ==========================================================================
+       MODAL CONTROLLERS & ACTIONS
+       ========================================================================== */
+
+    function openModal(id) {
+      document.getElementById(id).classList.add('active');
+    }
+
+    function closeModal(id) {
+      playSound('pop');
+      document.getElementById(id).classList.remove('active');
+    }
+
+    function confirmNewDay() {
+      playSound('pop');
+      requireParentVerification(() => {
+        openModal('modal-newday');
+      }, 'Начало нового дня');
+    }
+
+    function startNewDay() {
+      playSound('newday');
+      const childData = appState[appState.activeProfile];
+      childData.completedTasks = {};
+      saveState();
+      closeModal('modal-newday');
+      renderDashboard();
+    }
+
+    function openParentAdjustModal() {
+      playSound('pop');
+      requireParentVerification(() => {
+        const childData = appState[appState.activeProfile];
+        document.getElementById('parent-crystal-val').value = childData.crystals;
+        openModal('modal-parent');
+      }, 'Редактирование баланса кристаллов');
+    }
+
+    let currentPinInput = '';
+    let holdStartTime = 0;
+    let holdAnimFrame = null;
+    const HOLD_DURATION = 2500; // 2.5 seconds
+
+    function setupHoldButton() {
+      const btn = document.getElementById('btn-hold-trigger');
+      const fill = document.getElementById('hold-progress-fill');
+
+      if (!btn) return;
+
+      const startHold = (e) => {
+        e.preventDefault();
+        holdStartTime = Date.now();
+        fill.style.width = '0%';
+        fill.style.transition = 'none';
+
+        const updateFill = () => {
+          const elapsed = Date.now() - holdStartTime;
+          const pct = Math.min(100, (elapsed / HOLD_DURATION) * 100);
+          fill.style.width = `${pct}%`;
+
+          if (elapsed >= HOLD_DURATION) {
+            stopHold();
+            onParentAuthSuccess();
+          } else {
+            holdAnimFrame = requestAnimationFrame(updateFill);
+          }
+        };
+
+        holdAnimFrame = requestAnimationFrame(updateFill);
+      };
+
+      const stopHold = () => {
+        if (holdAnimFrame) cancelAnimationFrame(holdAnimFrame);
+        fill.style.transition = 'width 0.2s ease';
+        fill.style.width = '0%';
+      };
+
+      btn.onmousedown = startHold;
+      btn.ontouchstart = startHold;
+      btn.onmouseup = stopHold;
+      btn.onmouseleave = stopHold;
+      btn.ontouchend = stopHold;
+    }
+
+    function switchParentAuthTab(mode) {
+      playSound('pop');
+      ['math', 'hold', 'pin'].forEach(m => {
+        const btn = document.getElementById(`tab-${m}-btn`);
+        const content = document.getElementById(`parent-auth-${m}`);
+        if (btn) btn.classList.toggle('active', m === mode);
+        if (content) content.classList.toggle('active', m === mode);
+      });
+    }
+
+    function pressPinDigit(digit) {
+      playSound('pop');
+      if (currentPinInput.length < 4) {
+        currentPinInput += digit;
+        updatePinDisplay();
+
+        if (currentPinInput.length === 4) {
+          const parentPin = appState.parentPin || '1234';
+          if (currentPinInput === parentPin) {
+            onParentAuthSuccess();
+          } else {
+            const disp = document.getElementById('pin-display');
+            disp.style.color = '#f87171';
+            setTimeout(() => {
+              clearPin();
+              disp.style.color = '#38bdf8';
+            }, 400);
+          }
+        }
+      }
+    }
+
+    function clearPin() {
+      currentPinInput = '';
+      updatePinDisplay();
+    }
+
+    function deletePinDigit() {
+      playSound('pop');
+      currentPinInput = currentPinInput.slice(0, -1);
+      updatePinDisplay();
+    }
+
+    function updatePinDisplay() {
+      const disp = document.getElementById('pin-display');
+      if (!disp) return;
+      disp.innerText = '•'.repeat(currentPinInput.length) || '••••';
+    }
+
+    function onParentAuthSuccess() {
+      playSound('pop');
+      closeModal('modal-parent-check');
+      clearPin();
+      if (pendingParentAction) {
+        const fn = pendingParentAction;
+        pendingParentAction = null;
+        fn();
+      }
+    }
+
+    function generateMultiplicationChallenge() {
+      const num1 = Math.floor(Math.random() * 6) + 4; // 4..9
+      const num2 = Math.floor(Math.random() * 6) + 3; // 3..8
+      const correctAnswer = num1 * num2;
+
+      document.getElementById('parent-math-question').innerText = `${num1} × ${num2} = ?`;
+
+      const options = new Set([correctAnswer]);
+      while (options.size < 4) {
+        const delta = (Math.floor(Math.random() * 5) - 2) * num1 || (Math.floor(Math.random() * 7) - 3);
+        const wrong = correctAnswer + delta;
+        if (wrong > 0 && wrong !== correctAnswer) options.add(wrong);
+      }
+
+      const sortedOptions = Array.from(options).sort(() => Math.random() - 0.5);
+      const container = document.getElementById('parent-math-options');
+      container.innerHTML = '';
+
+      sortedOptions.forEach(opt => {
+        const btn = document.createElement('button');
+        btn.className = 'btn-math-opt';
+        btn.innerText = opt;
+        btn.onclick = () => checkMultiplicationAnswer(opt, correctAnswer);
+        container.appendChild(btn);
+      });
+    }
+
+    function checkMultiplicationAnswer(selected, correct) {
+      initAudio();
+      if (selected === correct) {
+        onParentAuthSuccess();
+      } else {
+        playSound('pop');
+        const qEl = document.getElementById('parent-math-question');
+        qEl.style.color = '#f87171';
+        setTimeout(() => { qEl.style.color = '#38bdf8'; }, 400);
+      }
+    }
+
+    function requireParentVerification(actionCallback, actionDescText) {
+      if (!appState.parentProtectionEnabled) {
+        actionCallback();
+        return;
+      }
+
+      pendingParentAction = actionCallback;
+      document.getElementById('parent-check-action-desc').innerText = actionDescText || 'Решите пример на умножение для подтверждения:';
+      generateMultiplicationChallenge();
+      clearPin();
+      openModal('modal-parent-check');
+    }
+
+    function adjustCrystalInput(delta) {
+      playSound('pop');
+      const input = document.getElementById('parent-crystal-val');
+      const val = parseInt(input.value || 0, 10);
+      input.value = Math.max(0, val + delta);
+    }
+
+    function saveParentCrystals() {
+      playSound('pop');
+      const childData = appState[appState.activeProfile];
+      const val = parseInt(document.getElementById('parent-crystal-val').value || 0, 10);
+      childData.crystals = Math.max(0, val);
+      saveState();
+      closeModal('modal-parent');
+      renderDashboard();
+    }
+
+    function toggleParentProtection() {
+      if (appState.parentProtectionEnabled) {
+        requireParentVerification(() => {
+          appState.parentProtectionEnabled = false;
+          saveState();
+          updateParentProtectionBtn();
+        }, 'Отключение защиты');
+      } else {
+        appState.parentProtectionEnabled = true;
+        saveState();
+        updateParentProtectionBtn();
+      }
+    }
+
+    function updateParentProtectionBtn() {
+      const btn = document.getElementById('parent-lock-btn');
+      if (appState.parentProtectionEnabled) {
+        btn.innerHTML = '<span>🔒</span> <span>Защита ВКЛ</span>';
+        btn.classList.remove('unlocked');
+      } else {
+        btn.innerHTML = '<span>🔓</span> <span>Защита ВЫКЛ</span>';
+        btn.classList.add('unlocked');
+      }
+    }
+
+    /* ==========================================================================
+       SCHEDULE (РАССПОРЯДОК ДНЯ) LOGIC
+       ========================================================================== */
+
+    const DEFAULT_SCHEDULE = [
+      { id: 'sc_1', start: '08:00', end: '08:30', title: 'Утренний подъём и гигиена', category: 'Гигиена', emoji: '🪥' },
+      { id: 'sc_2', start: '08:30', end: '09:00', title: 'Вкусный завтрак', category: 'Приём пищи', emoji: '🍳' },
+      { id: 'sc_3', start: '09:00', end: '10:00', title: 'Учебные и развивающие занятия', category: 'Занятия', emoji: '📚' },
+      { id: 'sc_4', start: '10:00', end: '12:00', title: 'Утренняя прогулка', category: 'Прогулка', emoji: '🌳' },
+      { id: 'sc_5', start: '12:30', end: '13:00', title: 'Обед', category: 'Приём пищи', emoji: '🍲' },
+      { id: 'sc_6', start: '13:00', end: '15:00', title: 'Дневной сон и тихий час', category: 'Дневной сон', emoji: '😴' },
+      { id: 'sc_7', start: '15:30', end: '16:00', title: 'Полдник', category: 'Приём пищи', emoji: '🍎' },
+      { id: 'sc_8', start: '16:00', end: '17:30', title: 'Игры и творчество', category: 'Время для игры', emoji: '🎮' },
+      { id: 'sc_9', start: '17:30', end: '19:00', title: 'Вечерняя прогулка', category: 'Прогулка', emoji: '🌳' },
+      { id: 'sc_10', start: '19:00', end: '19:30', title: 'Семейный ужин', category: 'Приём пищи', emoji: '🍝' },
+      { id: 'sc_11', start: '19:30', end: '20:30', title: 'Свободное время и игры', category: 'Время для игры', emoji: '🧩' },
+      { id: 'sc_12', start: '20:30', end: '21:00', title: 'Подготовка ко сну и сказка на ночь', category: 'Вечерний сон', emoji: '🌙' }
+    ];
+
+    let currentScheduleDayView = 'today';
+
+    function getScheduleList(dayKey) {
+      if (!appState.schedules) {
+        appState.schedules = {
+          today: JSON.parse(JSON.stringify(DEFAULT_SCHEDULE)),
+          tomorrow: JSON.parse(JSON.stringify(DEFAULT_SCHEDULE))
+        };
+        saveState();
+      }
+      return appState.schedules[dayKey] || DEFAULT_SCHEDULE;
+    }
+
+    function switchScheduleDay(dayKey) {
+      playSound('pop');
+      currentScheduleDayView = dayKey;
+      document.getElementById('schedule-day-today-btn').classList.toggle('active', dayKey === 'today');
+      document.getElementById('schedule-day-tomorrow-btn').classList.toggle('active', dayKey === 'tomorrow');
+      renderSchedule();
+    }
+
+    function renderSchedule() {
+      const now = new Date();
+      const curHours = String(now.getHours()).padStart(2, '0');
+      const curMins = String(now.getMinutes()).padStart(2, '0');
+      const curTimeStr = `${curHours}:${curMins}`;
+
+      const displayClock = document.getElementById('schedule-time-now-display');
+      if (displayClock) displayClock.innerText = `⏱️ ${curTimeStr}`;
+
+      const items = getScheduleList(currentScheduleDayView);
+      items.sort((a, b) => a.start.localeCompare(b.start));
+
+      let activeItem = null;
+
+      if (currentScheduleDayView === 'today') {
+        activeItem = items.find(item => curTimeStr >= item.start && curTimeStr < item.end);
+      }
+
+      const banner = document.getElementById('current-activity-banner');
+      if (banner) {
+        if (activeItem) {
+          banner.style.display = 'flex';
+          banner.innerHTML = `
+            <div class="current-act-icon">${activeItem.emoji}</div>
+            <div class="current-act-details">
+              <span class="current-act-badge">⚡ СЕЙЧАС ИДЕТ:</span>
+              <div class="current-act-title">${activeItem.title}</div>
+              <div class="current-act-time">⏱️ ${activeItem.start} — ${activeItem.end} (${activeItem.category})</div>
+            </div>
+          `;
+        } else if (currentScheduleDayView === 'today') {
+          const nextItem = items.find(item => item.start > curTimeStr);
+          if (nextItem) {
+            banner.style.display = 'flex';
+            banner.innerHTML = `
+              <div class="current-act-icon">⏳</div>
+              <div class="current-act-details">
+                <span class="current-act-badge" style="background:#0284c7;">СЛЕДУЮЩЕЕ СОБЫТИЕ:</span>
+                <div class="current-act-title">${nextItem.title} (${nextItem.emoji})</div>
+                <div class="current-act-time">⏱️ Начнется в ${nextItem.start}</div>
+              </div>
+            `;
+          } else {
+            banner.style.display = 'none';
+          }
+        } else {
+          banner.style.display = 'none';
+        }
+      }
+
+      const container = document.getElementById('schedule-timeline');
+      if (!container) return;
+      container.innerHTML = '';
+
+      items.forEach(item => {
+        const isActiveNow = (currentScheduleDayView === 'today') && (curTimeStr >= item.start && curTimeStr < item.end);
+        const isPassed = (currentScheduleDayView === 'today') && (curTimeStr >= item.end);
+
+        const card = document.createElement('div');
+        card.className = `timeline-item ${isActiveNow ? 'active-now' : ''} ${isPassed ? 'passed' : ''}`;
+
+        card.innerHTML = `
+          <div class="timeline-time-range">${item.start} — ${item.end}</div>
+          <div class="timeline-emoji">${item.emoji}</div>
+          <div class="timeline-info">
+            <div class="timeline-title">${item.title}</div>
+            <span class="timeline-category-tag">${item.category}</span>
+          </div>
+          ${isActiveNow ? '<div style="font-size:1.6rem;">🔥</div>' : ''}
+        `;
+
+        container.appendChild(card);
+      });
+    }
+
+    function openScheduleEditor() {
+      requireParentVerification(() => {
+        document.getElementById('editor-day-subtitle').innerText = `Составление распорядка на ${currentScheduleDayView === 'today' ? 'сегодня' : 'завтра'}:`;
+        renderScheduleEditorList();
+        openModal('modal-schedule-editor');
+      }, 'Редактирование распорядка дня');
+    }
+
+    function renderScheduleEditorList() {
+      const items = getScheduleList(currentScheduleDayView);
+      items.sort((a, b) => a.start.localeCompare(b.start));
+      const container = document.getElementById('editor-items-list');
+      if (!container) return;
+      container.innerHTML = '';
+
+      items.forEach(item => {
+        const row = document.createElement('div');
+        row.className = 'schedule-editor-item';
+        row.innerHTML = `
+          <div style="font-weight:800; font-size:1.1rem; color:#38bdf8; min-width:110px;">${item.start} - ${item.end}</div>
+          <div style="font-size:1.4rem;">${item.emoji}</div>
+          <div style="flex:1; text-align:left; font-weight:700;">${item.title} (${item.category})</div>
+          <button class="btn-modal btn-modal-cancel" style="max-width:44px; padding:0.4rem; color:#f87171;" onclick="deleteScheduleItem('${item.id}')">🗑️</button>
+        `;
+        container.appendChild(row);
+      });
+    }
+
+    function addScheduleItemFromEditor() {
+      playSound('pop');
+      const start = document.getElementById('new-sc-start').value || '08:00';
+      const end = document.getElementById('new-sc-end').value || '08:30';
+      const title = document.getElementById('new-sc-title').value.trim() || 'Новое событие';
+      const emoji = document.getElementById('new-sc-emoji').value.trim() || '⭐';
+      const category = document.getElementById('new-sc-category').value || 'Игры';
+
+      const list = getScheduleList(currentScheduleDayView);
+      list.push({
+        id: 'sc_' + Date.now(),
+        start, end, title, emoji, category
+      });
+
+      saveState();
+      renderScheduleEditorList();
+      renderSchedule();
+
+      document.getElementById('new-sc-title').value = '';
+    }
+
+    function deleteScheduleItem(id) {
+      playSound('pop');
+      const list = getScheduleList(currentScheduleDayView);
+      const idx = list.findIndex(i => i.id === id);
+      if (idx !== -1) {
+        list.splice(idx, 1);
+        saveState();
+        renderScheduleEditorList();
+        renderSchedule();
+      }
+    }
+
+    function resetDefaultSchedule() {
+      playSound('pop');
+      appState.schedules[currentScheduleDayView] = JSON.parse(JSON.stringify(DEFAULT_SCHEDULE));
+      saveState();
+      renderScheduleEditorList();
+      renderSchedule();
+    }
+
+    /* ==========================================================================
+       COUNTDOWN TIMER LOGIC
+       ========================================================================== */
+
+    let timerInterval = null;
+    let timerTotalSeconds = 0;
+    let timerRemainingSeconds = 0;
+    let isTimerPaused = false;
+
+    function startTaskTimer(minutes, taskTitle, emoji) {
+      initAudio();
+      playSound('pop');
+
+      timerTotalSeconds = minutes * 60;
+      timerRemainingSeconds = timerTotalSeconds;
+      isTimerPaused = false;
+
+      const emojiEl = document.getElementById('timer-modal-emoji');
+      if (emojiEl) emojiEl.innerText = emoji || '⏱️';
+      
+      const titleEl = document.getElementById('timer-modal-title');
+      if (titleEl) titleEl.innerText = taskTitle;
+      
+      const descEl = document.getElementById('timer-modal-desc');
+      if (descEl) descEl.innerText = `Таймер задачи (${minutes} минут):`;
+      
+      const statusText = document.getElementById('timer-status-subtext');
+      if (statusText) statusText.innerText = 'Идёт отсчёт...';
+      
+      const btn = document.getElementById('timer-toggle-btn');
+      if (btn) btn.innerText = '⏸️ Пауза';
+
+      const display = document.getElementById('timer-countdown-display');
+      if (display) display.style.color = '#fef08a';
+
+      updateTimerUI();
+      openModal('modal-task-timer');
+
+      if (timerInterval) clearInterval(timerInterval);
+      timerInterval = setInterval(tickTaskTimer, 1000);
+    }
+
+    function tickTaskTimer() {
+      if (isTimerPaused) return;
+
+      if (timerRemainingSeconds > 0) {
+        timerRemainingSeconds--;
+        updateTimerUI();
+
+        if (timerRemainingSeconds === 0) {
+          clearInterval(timerInterval);
+          onTimerComplete();
+        }
+      }
+    }
+
+    function updateTimerUI() {
+      const m = Math.floor(timerRemainingSeconds / 60);
+      const s = timerRemainingSeconds % 60;
+      const timeStr = `${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`;
+      
+      const display = document.getElementById('timer-countdown-display');
+      if (display) display.innerText = timeStr;
+
+      const circle = document.getElementById('timer-progress-circle');
+      if (circle && timerTotalSeconds > 0) {
+        const totalLength = 597;
+        const progressFraction = timerRemainingSeconds / timerTotalSeconds;
+        const offset = totalLength * (1 - progressFraction);
+        circle.style.strokeDashoffset = offset;
+      }
+    }
+
+    function toggleTaskTimerPause() {
+      playSound('pop');
+      isTimerPaused = !isTimerPaused;
+      const btn = document.getElementById('timer-toggle-btn');
+      const statusText = document.getElementById('timer-status-subtext');
+      
+      if (isTimerPaused) {
+        if (btn) btn.innerText = '▶️ Продолжить';
+        if (statusText) statusText.innerText = 'На паузе';
+      } else {
+        if (btn) btn.innerText = '⏸️ Пауза';
+        if (statusText) statusText.innerText = 'Идёт отсчёт...';
+      }
+    }
+
+    function onTimerComplete() {
+      playSound('fanfare');
+      triggerFireworks();
+      
+      const statusText = document.getElementById('timer-status-subtext');
+      if (statusText) statusText.innerText = '🎉 ВРЕМЯ ВЫШЛО!';
+      
+      const display = document.getElementById('timer-countdown-display');
+      if (display) {
+        display.innerText = '00:00';
+        display.style.color = '#34d399';
+      }
+    }
+
+    function closeTaskTimerModal() {
+      if (timerInterval) clearInterval(timerInterval);
+      closeModal('modal-task-timer');
+    }
+
+    function escapeHtml(str) {
+      return str.replace(/'/g, "\\'").replace(/"/g, '&quot;');
+    }
+
+    /* ==========================================================================
+       INITIALIZATION
+       ========================================================================== */
+    window.addEventListener('DOMContentLoaded', () => {
+      generateBgBubbles();
+      updateProfileCardBalances();
+      updateParentProtectionBtn();
+
+      setInterval(renderSchedule, 30000);
+
+      // Auto-restore profile if saved
+      if (appState.activeProfile) {
+        selectProfile(appState.activeProfile);
+      }
+    });
+  </script>
+</body>
+</html>
