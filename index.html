@@ -1353,6 +1353,43 @@
       margin-bottom: 0.6rem;
     }
 
+    /* Task Category Filter Buttons */
+    .task-category-filter-bar {
+      display: flex;
+      gap: 0.8rem;
+      justify-content: center;
+      margin: 0.8rem 0 1.4rem;
+      flex-wrap: wrap;
+    }
+
+    .btn-filter-cost {
+      background: rgba(255, 255, 255, 0.15);
+      backdrop-filter: blur(10px);
+      border: 2.5px solid rgba(255, 255, 255, 0.3);
+      color: white;
+      font-family: var(--font-heading);
+      font-size: 1.1rem;
+      font-weight: 700;
+      padding: 0.7rem 1.3rem;
+      border-radius: 20px;
+      cursor: pointer;
+      transition: all 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
+      box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+    }
+
+    .btn-filter-cost:hover {
+      transform: translateY(-2px);
+      background: rgba(255, 255, 255, 0.25);
+    }
+
+    .btn-filter-cost.active {
+      background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+      border-color: #ffffff;
+      color: white;
+      box-shadow: 0 6px 18px rgba(245, 158, 11, 0.4);
+      transform: scale(1.03);
+    }
+
     /* Button for Shared Schedule on Profile Screen */
     .btn-shared-schedule {
       display: inline-flex;
@@ -1615,6 +1652,10 @@
         </div>
 
         <div class="header-right">
+          <button class="btn-header-action" onclick="toggleFullscreen()" title="Режим на весь экран">
+            <span>🖥️</span> <span>На весь экран</span>
+          </button>
+
           <button class="btn-parent-lock" id="parent-lock-btn" onclick="toggleParentProtection()" title="Переключить защиту от случайных кликов">
             🔒 Защита ВКЛ
           </button>
@@ -1656,6 +1697,22 @@
             <div class="progress-bar-bg">
               <div class="progress-bar-fill" id="progress-fill"></div>
             </div>
+          </div>
+
+          <!-- Task Category Filter Accordion Buttons -->
+          <div class="task-category-filter-bar">
+            <button class="btn-filter-cost active" id="filter-cost-all" onclick="filterTaskCost('all')">
+              <span>✨ Все задачи</span>
+            </button>
+            <button class="btn-filter-cost" id="filter-cost-1" onclick="filterTaskCost(1)">
+              <span>💎 За 1 кристалл</span>
+            </button>
+            <button class="btn-filter-cost" id="filter-cost-2" onclick="filterTaskCost(2)">
+              <span>💎💎 За 2 кристалла</span>
+            </button>
+            <button class="btn-filter-cost" id="filter-cost-3" onclick="filterTaskCost(3)">
+              <span>💎💎💎 За 3 кристалла</span>
+            </button>
           </div>
 
           <!-- Dynamic Tasks List (Rendered via JS) -->
@@ -2269,6 +2326,46 @@
       renderShop();
     }
 
+    let activeTaskCostFilter = 'all'; // 'all' | 1 | 2 | 3
+
+    function filterTaskCost(costFilter) {
+      initAudio();
+      playSound('pop');
+      activeTaskCostFilter = costFilter;
+
+      ['all', 1, 2, 3].forEach(key => {
+        const btn = document.getElementById(`filter-cost-${key}`);
+        if (btn) btn.classList.toggle('active', key === costFilter);
+      });
+
+      renderTasks();
+    }
+
+    function toggleFullscreen() {
+      initAudio();
+      playSound('pop');
+      const doc = document;
+      const docEl = doc.documentElement;
+
+      if (!doc.fullscreenElement && !doc.webkitFullscreenElement && !doc.msFullscreenElement) {
+        if (docEl.requestFullscreen) {
+          docEl.requestFullscreen().catch(err => console.log('Fullscreen error:', err));
+        } else if (docEl.webkitRequestFullscreen) {
+          docEl.webkitRequestFullscreen();
+        } else if (docEl.msRequestFullscreen) {
+          docEl.msRequestFullscreen();
+        }
+      } else {
+        if (doc.exitFullscreen) {
+          doc.exitFullscreen();
+        } else if (doc.webkitExitFullscreen) {
+          doc.webkitExitFullscreen();
+        } else if (doc.msExitFullscreen) {
+          doc.msExitFullscreen();
+        }
+      }
+    }
+
     function renderTasks() {
       const childKey = appState.activeProfile;
       const childData = appState[childKey];
@@ -2292,8 +2389,13 @@
       document.getElementById('progress-text').innerText = `Выполнено ${completedCount} из ${totalTasks} задач (${percent}%)`;
       document.getElementById('progress-fill').style.width = `${percent}%`;
 
-      [1, 2, 3].forEach(cost => {
-        if (groups[cost].length === 0) return;
+      let activeCosts = [1, 2, 3];
+      if (activeTaskCostFilter !== 'all') {
+        activeCosts = [parseInt(activeTaskCostFilter, 10)];
+      }
+
+      activeCosts.forEach(cost => {
+        if (!groups[cost] || groups[cost].length === 0) return;
 
         const titleSection = document.createElement('div');
         titleSection.className = 'task-section-title';
@@ -2305,6 +2407,9 @@
 
         const grid = document.createElement('div');
         grid.className = 'tasks-grid';
+        if (activeTaskCostFilter !== 'all') {
+          grid.style.gridTemplateColumns = 'repeat(auto-fit, minmax(260px, 1fr))';
+        }
 
         groups[cost].forEach(task => {
           const isDone = !!childData.completedTasks[task.id];
