@@ -1439,41 +1439,54 @@
       margin-bottom: 0.6rem;
     }
 
-    /* Task Category Filter Buttons */
+    /* Task Category Filter Buttons - Big Cards style */
     .task-category-filter-bar {
-      display: flex;
-      gap: 0.8rem;
-      justify-content: center;
-      margin: 0.8rem 0 1.4rem;
-      flex-wrap: wrap;
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 1rem;
+      margin: 1.2rem 0 1.8rem;
+      width: 100%;
     }
 
     .btn-filter-cost {
-      background: rgba(255, 255, 255, 0.15);
-      backdrop-filter: blur(10px);
-      border: 2.5px solid rgba(255, 255, 255, 0.3);
+      background: linear-gradient(135deg, rgba(255, 255, 255, 0.2) 0%, rgba(255, 255, 255, 0.1) 100%);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      border: 3px solid rgba(255, 255, 255, 0.35);
       color: white;
       font-family: var(--font-heading);
-      font-size: 1.1rem;
+      font-size: 1.2rem;
       font-weight: 700;
-      padding: 0.7rem 1.3rem;
-      border-radius: 20px;
+      padding: 1.1rem 1.2rem;
+      border-radius: 24px;
       cursor: pointer;
-      transition: all 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
-      box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+      transition: all 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);
+      box-shadow: 0 8px 22px rgba(0, 0, 0, 0.2);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      gap: 0.6rem;
+      box-sizing: border-box;
     }
 
     .btn-filter-cost:hover {
-      transform: translateY(-2px);
-      background: rgba(255, 255, 255, 0.25);
+      transform: translateY(-4px) scale(1.02);
+      background: rgba(255, 255, 255, 0.28);
+      border-color: rgba(255, 255, 255, 0.6);
+      box-shadow: 0 14px 28px rgba(0, 0, 0, 0.3);
+    }
+
+    .btn-filter-cost:active {
+      transform: scale(0.96);
     }
 
     .btn-filter-cost.active {
       background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
       border-color: #ffffff;
       color: white;
-      box-shadow: 0 6px 18px rgba(245, 158, 11, 0.4);
-      transform: scale(1.03);
+      box-shadow: 0 10px 25px rgba(245, 158, 11, 0.5);
+      transform: scale(1.04);
     }
 
     /* Button for Shared Schedule on Profile Screen */
@@ -1507,7 +1520,7 @@
        ========================================================================== */
     @media (max-width: 1024px) {
       .app-header {
-        padding: 0.8rem 1.2rem;
+        padding: 0.7rem 1rem;
       }
       .dashboard-body {
         padding: 1.2rem;
@@ -1515,27 +1528,63 @@
     }
 
     @media (max-width: 768px) {
-      .app-header {
-        flex-wrap: wrap;
-        gap: 0.8rem;
-        justify-content: space-between;
+      #screen-profiles {
+        padding: 1.2rem 0.8rem;
+        justify-content: space-evenly;
       }
-      .header-left, .header-center, .header-right {
-        gap: 0.5rem;
+      .profiles-header {
+        margin-bottom: 1rem;
       }
-      .btn-parent-lock {
-        font-size: 0.85rem;
-        padding: 0.4rem 0.8rem;
+      .profiles-header h1 {
+        font-size: 1.4rem;
+      }
+      .profiles-header p {
+        font-size: 0.95rem;
       }
       .profiles-grid {
         flex-direction: column;
         align-items: center;
-        gap: 1.5rem;
+        gap: 1rem;
       }
       .profile-card {
         width: 90%;
-        max-width: 360px;
+        max-width: 320px;
+        padding: 1rem;
       }
+      .btn-shared-schedule {
+        font-size: 1.15rem;
+        padding: 0.8rem 1.6rem;
+        width: 90%;
+        max-width: 340px;
+      }
+
+      .app-header {
+        padding: 0.5rem 0.6rem;
+        gap: 0.4rem;
+        justify-content: space-between;
+      }
+      .header-left, .header-center, .header-right {
+        gap: 0.35rem;
+      }
+      .btn-header-text {
+        height: 38px;
+        padding: 0.35rem 0.6rem;
+        font-size: 0.82rem;
+        border-radius: 12px;
+      }
+      .btn-icon-head {
+        width: 38px;
+        height: 38px;
+        font-size: 1.1rem;
+        border-radius: 12px;
+      }
+      .crystal-counter-badge {
+        padding: 0.25rem 0.6rem;
+      }
+      .crystal-count-val {
+        font-size: 1.3rem;
+      }
+
       .tasks-grid {
         grid-template-columns: 1fr;
       }
@@ -1544,44 +1593,35 @@
       }
       .modal-box {
         width: 92%;
-        padding: 1.5rem 1.2rem;
-      }
-      .timeline-item {
-        flex-direction: column;
-        align-items: flex-start;
-        gap: 0.8rem;
-      }
-      .timeline-time-range {
-        min-width: auto;
-        width: 100%;
-        text-align: left;
+        padding: 1.4rem 1rem;
       }
     }
 
     @media (max-width: 480px) {
-      .tab-bar {
-        gap: 0.4rem;
-        flex-wrap: wrap;
+      .app-header {
+        padding: 0.4rem 0.4rem;
+        gap: 0.25rem;
       }
-      .tab-btn {
-        padding: 0.6rem 0.8rem;
-        font-size: 0.95rem;
-        flex: 1 1 auto;
+      .btn-header-text {
+        padding: 0.3rem 0.45rem;
+        font-size: 0.78rem;
       }
-      .crystal-count-val {
-        font-size: 1.5rem;
+      .btn-icon-head {
+        width: 34px;
+        height: 34px;
+        font-size: 1rem;
+        border-radius: 10px;
       }
-      .task-card {
-        padding: 1rem;
-        gap: 0.8rem;
+      .task-category-filter-bar {
+        grid-template-columns: 1fr 1fr;
+        gap: 0.6rem;
       }
-      .task-emoji {
-        font-size: 2.2rem;
-        min-width: 48px;
-        height: 48px;
-      }
-      .task-title {
-        font-size: 1.1rem;
+      .btn-filter-cost {
+        font-size: 1rem;
+        padding: 0.8rem 0.6rem;
+        border-radius: 18px;
+        flex-direction: column;
+        gap: 0.3rem;
       }
     }
   </style>
@@ -1785,19 +1825,19 @@
             </div>
           </div>
 
-          <!-- Task Category Filter Accordion Buttons -->
+          <!-- 4 Big Category Filter Buttons -->
           <div class="task-category-filter-bar">
-            <button class="btn-filter-cost active" id="filter-cost-all" onclick="filterTaskCost('all')">
-              <span>✨ Все задачи</span>
-            </button>
             <button class="btn-filter-cost" id="filter-cost-1" onclick="filterTaskCost(1)">
-              <span>💎 За 1 кристалл</span>
+              <span style="font-size: 1.5rem;">💎</span> <span>Задачи за 1 кристалл</span>
             </button>
             <button class="btn-filter-cost" id="filter-cost-2" onclick="filterTaskCost(2)">
-              <span>💎💎 За 2 кристалла</span>
+              <span style="font-size: 1.5rem;">💎💎</span> <span>Задачи за 2 кристалла</span>
             </button>
             <button class="btn-filter-cost" id="filter-cost-3" onclick="filterTaskCost(3)">
-              <span>💎💎💎 За 3 кристалла</span>
+              <span style="font-size: 1.5rem;">💎💎💎</span> <span>Задачи за 3 кристалла</span>
+            </button>
+            <button class="btn-filter-cost" id="filter-cost-all" onclick="filterTaskCost('all')">
+              <span style="font-size: 1.5rem;">✨</span> <span>Все задачи</span>
             </button>
           </div>
 
@@ -2412,7 +2452,7 @@
       renderShop();
     }
 
-    let activeTaskCostFilter = 'all'; // 'all' | 1 | 2 | 3
+    let activeTaskCostFilter = null; // null = TASKS HIDDEN UNTIL BUTTON IS PRESSED!
 
     function filterTaskCost(costFilter) {
       initAudio();
@@ -2474,6 +2514,19 @@
       const percent = totalTasks > 0 ? Math.round((completedCount / totalTasks) * 100) : 0;
       document.getElementById('progress-text').innerText = `Выполнено ${completedCount} из ${totalTasks} задач (${percent}%)`;
       document.getElementById('progress-fill').style.width = `${percent}%`;
+
+      // IF NO BUTTON IS PRESSED YET -> TASKS ARE HIDDEN!
+      if (activeTaskCostFilter === null) {
+        container.innerHTML = `
+          <div style="text-align: center; padding: 2.5rem 1.2rem; background: rgba(255,255,255,0.08); border-radius: 28px; border: 2.5px dashed rgba(255,255,255,0.3); margin-top: 0.8rem;">
+            <div style="font-size: 3.5rem; margin-bottom: 0.6rem;">👆</div>
+            <div style="font-family: var(--font-heading); font-size: 1.3rem; font-weight: 700; color: #fef08a;">
+              Нажми на одну из 4 больших кнопок выше, чтобы выбрать задачи!
+            </div>
+          </div>
+        `;
+        return;
+      }
 
       let activeCosts = [1, 2, 3];
       if (activeTaskCostFilter !== 'all') {
