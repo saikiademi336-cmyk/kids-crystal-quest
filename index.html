@@ -2370,13 +2370,19 @@
           if (rawVal && typeof rawVal === 'string' && rawVal.length > 5) {
             const jsonStr = base64ToUtf8(rawVal);
             const cloudData = JSON.parse(jsonStr);
-            if (cloudData && cloudData.lastUpdated && (force || cloudData.lastUpdated > (appState.lastUpdated || 0))) {
-              appState = Object.assign({}, defaultState, cloudData);
-              saveStateLocalOnly();
-              updateProfileCardBalances();
-              renderDashboard();
-              const syncStatusEl = document.getElementById('cloud-sync-status');
-              if (syncStatusEl) syncStatusEl.innerText = '☁️ Синхронизировано';
+            if (cloudData && (cloudData.sofia || cloudData.bogdan)) {
+              // Compare actual state content (crystals & completed tasks)
+              const localContent = JSON.stringify({ sofia: appState.sofia, bogdan: appState.bogdan });
+              const cloudContent = JSON.stringify({ sofia: cloudData.sofia, bogdan: cloudData.bogdan });
+
+              if (force || localContent !== cloudContent) {
+                appState = Object.assign({}, defaultState, cloudData);
+                saveStateLocalOnly();
+                updateProfileCardBalances();
+                renderDashboard();
+                const syncStatusEl = document.getElementById('cloud-sync-status');
+                if (syncStatusEl) syncStatusEl.innerText = '☁️ Облако в сети';
+              }
             }
           }
         }
@@ -3768,9 +3774,9 @@
       updateProfileCardBalances();
       updateParentProtectionBtn();
 
-      // Start Cloud Sync auto-polling every 3.5 seconds
+      // Start Cloud Sync auto-polling every 2.5 seconds
       pullStateFromCloud();
-      setInterval(pullStateFromCloud, 3500);
+      setInterval(pullStateFromCloud, 2500);
 
       setInterval(renderSchedule, 30000);
 
