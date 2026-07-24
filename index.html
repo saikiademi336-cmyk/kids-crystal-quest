@@ -2326,6 +2326,7 @@
 
     const CLOUD_APP_ID = 'app_kids_crystal_quest_v2';
     const CLOUD_KEY_ID = 'sofia_bogdan_shared_state';
+    const COUNTER_NS = 'kids_crystal_quest_v2';
     let isSyncingWithCloud = false;
 
     function utf8ToBase64(str) {
@@ -2347,50 +2348,90 @@
         const syncStatusEl = document.getElementById('cloud-sync-status');
         if (syncStatusEl) syncStatusEl.innerText = '☁️ Сохранение...';
 
+        const sofCrystals = appState.sofia ? appState.sofia.crystals : 0;
+        const bogCrystals = appState.bogdan ? appState.bogdan.crystals : 0;
+
+        // Push crystal counts to CounterAPI
+        fetch(`https://api.counterapi.dev/v1/${COUNTER_NS}/sofia_crystals/set?count=${sofCrystals}`).catch(() => {});
+        fetch(`https://api.counterapi.dev/v1/${COUNTER_NS}/bogdan_crystals/set?count=${bogCrystals}`).catch(() => {});
+
+        // Push full JSON state to KeyVal
         appState.lastUpdated = Date.now();
         const jsonStr = JSON.stringify(appState);
         const b64Data = utf8ToBase64(jsonStr);
 
         const url = `https://keyvalue.immanuel.co/api/KeyVal/UpdateValue/${CLOUD_APP_ID}/${CLOUD_KEY_ID}/${b64Data}`;
-        await fetch(url, { method: 'POST' });
+        await fetch(url, { method: 'POST' }).catch(() => {});
 
         if (syncStatusEl) syncStatusEl.innerText = '☁️ Облако в сети';
       } catch (err) {
         console.warn('Cloud push warning:', err);
-        const syncStatusEl = document.getElementById('cloud-sync-status');
-        if (syncStatusEl) syncStatusEl.innerText = '☁️ Локально';
       }
     }
 
     async function pullStateFromCloud(force = false) {
       if (isSyncingWithCloud && !force) return;
       isSyncingWithCloud = true;
-      try {
-        const url = `https://keyvalue.immanuel.co/api/KeyVal/GetValue/${CLOUD_APP_ID}/${CLOUD_KEY_ID}?t=${Date.now()}`;
-        const res = await fetch(url);
-        if (res.ok) {
-          const rawVal = await res.json();
-          if (rawVal && typeof rawVal === 'string' && rawVal.length > 5) {
-            const jsonStr = base64ToUtf8(rawVal);
-            const cloudData = JSON.parse(jsonStr);
-            if (cloudData && (cloudData.sofia || cloudData.bogdan)) {
-              // Compare actual state content (crystals & completed tasks)
-              const localContent = JSON.stringify({ sofia: appState.sofia, bogdan: appState.bogdan });
-              const cloudContent = JSON.stringify({ sofia: cloudData.sofia, bogdan: cloudData.bogdan });
+      let updated = false;
 
-              if (force || localContent !== cloudContent) {
-                appState = Object.assign({}, defaultState, cloudData);
-                saveStateLocalOnly();
-                updateProfileCardBalances();
-                renderDashboard();
-                const syncStatusEl = document.getElementById('cloud-sync-status');
-                if (syncStatusEl) syncStatusEl.innerText = '☁️ Облако в сети';
+      try {
+        // 1. Pull crystal balances from CounterAPI
+        try {
+          const sofRes = await fetch(`https://api.counterapi.dev/v1/${COUNTER_NS}/sofia_crystals?t=${Date.now()}`);
+          const bogRes = await fetch(`https://api.counterapi.dev/v1/${COUNTER_NS}/bogdan_crystals?t=${Date.now()}`);
+
+          if (sofRes.ok) {
+            const sofData = await sofRes.json();
+            if (sofData && typeof sofData.count === 'number' && appState.sofia) {
+              if (appState.sofia.crystals !== sofData.count) {
+                appState.sofia.crystals = sofData.count;
+                updated = true;
               }
             }
           }
+
+          if (bogRes.ok) {
+            const bogData = await bogRes.json();
+            if (bogData && typeof bogData.count === 'number' && appState.bogdan) {
+              if (appState.bogdan.crystals !== bogData.count) {
+                appState.bogdan.crystals = bogData.count;
+                updated = true;
+              }
+            }
+          }
+        } catch (e) {}
+
+        // 2. Pull full JSON state from KeyVal
+        try {
+          const url = `https://keyvalue.immanuel.co/api/KeyVal/GetValue/${CLOUD_APP_ID}/${CLOUD_KEY_ID}?t=${Date.now()}`;
+          const res = await fetch(url);
+          if (res.ok) {
+            const rawVal = await res.json();
+            if (rawVal && typeof rawVal === 'string' && rawVal.length > 5) {
+              const jsonStr = base64ToUtf8(rawVal);
+              const cloudData = JSON.parse(jsonStr);
+              if (cloudData && (cloudData.sofia || cloudData.bogdan)) {
+                const localContent = JSON.stringify({ sofia: appState.sofia, bogdan: appState.bogdan });
+                const cloudContent = JSON.stringify({ sofia: cloudData.sofia, bogdan: cloudData.bogdan });
+
+                if (force || localContent !== cloudContent) {
+                  appState = Object.assign({}, defaultState, cloudData);
+                  updated = true;
+                }
+              }
+            }
+          }
+        } catch (e) {}
+
+        if (updated) {
+          saveStateLocalOnly();
+          updateProfileCardBalances();
+          renderDashboard();
+          const syncStatusEl = document.getElementById('cloud-sync-status');
+          if (syncStatusEl) syncStatusEl.innerText = '☁️ Облако в сети';
         }
       } catch (err) {
-        // Silent catch for offline or initial load
+        // Silent catch
       } finally {
         isSyncingWithCloud = false;
       }
