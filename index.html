@@ -3390,10 +3390,12 @@
 
       setInterval(renderSchedule, 30000);
 
-      // Auto-restore profile if saved
-      if (appState.activeProfile) {
-        selectProfile(appState.activeProfile);
-      }
+      // ALWAYS start on Screen 1 (Profile Selection) when app is launched!
+      appState.activeProfile = null;
+      document.getElementById('screen-dashboard').classList.remove('active');
+      document.getElementById('screen-schedule').classList.remove('active');
+      document.getElementById('screen-profiles').classList.add('active');
+      updateProfileCardBalances();
     });
   </script>
 </body>
