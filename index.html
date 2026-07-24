@@ -2765,78 +2765,49 @@
       });
     }
 
-    let pendingTaskConfirm = null;
-
-    function toggleTask(taskId, crystalsCount, event, taskTitle, taskEmoji) {
-      const childKey = appState.activeProfile;
-      if (!childKey || !appState[childKey]) return;
-      const childData = appState[childKey];
-
-      if (!childData.completedTasks) childData.completedTasks = {};
-      const isCurrentlyDone = !!childData.completedTasks[taskId];
-
-      const startX = (event && typeof event.clientX === 'number' && event.clientX > 0) ? event.clientX : window.innerWidth / 2;
-      const startY = (event && typeof event.clientY === 'number' && event.clientY > 0) ? event.clientY : window.innerHeight / 2;
-
-      if (!isCurrentlyDone) {
-        playSound('pop');
-        pendingTaskConfirm = { taskId, crystalsCount, startX, startY };
-
-        const emojiEl = document.getElementById('task-confirm-modal-emoji');
-        const questionEl = document.getElementById('task-confirm-modal-question');
-        const yesBtn = document.getElementById('btn-confirm-task-yes');
-
-        if (emojiEl) emojiEl.innerText = taskEmoji || '🤔';
-        if (questionEl) questionEl.innerText = `Точно? Вы точно выполнили: «${taskTitle}»?`;
-
-        if (yesBtn) {
-          yesBtn.onclick = () => {
-            closeModal('modal-task-confirm');
-            if (pendingTaskConfirm) {
-              const { taskId, crystalsCount, startX, startY } = pendingTaskConfirm;
-              pendingTaskConfirm = null;
-              executeToggleTask(taskId, crystalsCount, startX, startY);
-            }
-          };
-        }
-
-        openModal('modal-task-confirm');
-      } else {
-        executeToggleTask(taskId, crystalsCount, startX, startY);
-      }
+    function toggleTask(taskId, crystalsCount, event) {
+      executeToggleTask(taskId, crystalsCount, event);
     }
 
-    function executeToggleTask(taskId, crystalsCount, startX, startY) {
+    function executeToggleTask(taskId, crystalsCount, event) {
       initAudio();
       const childKey = appState.activeProfile;
-      if (!childKey || !appState[childKey]) return;
       const childData = appState[childKey];
-
       if (!childData.completedTasks) childData.completedTasks = {};
+
       const isCurrentlyDone = !!childData.completedTasks[taskId];
       const oldCrystals = childData.crystals || 0;
 
       if (!isCurrentlyDone) {
         // Mark task as done
         childData.completedTasks[taskId] = true;
-        childData.crystals = (childData.crystals || 0) + crystalsCount;
+        childData.crystals += crystalsCount;
 
-        // Fly animation
-        if (typeof startX === 'number' && typeof startY === 'number') {
-          animateFlyingCrystal(startX, startY, crystalsCount);
-        } else {
-          playSound('crystal');
+        // Determine coordinates for flying animation with reliable fallback
+        let clickX = window.innerWidth / 2;
+        let clickY = window.innerHeight / 2;
+        if (event) {
+          if (typeof event.clientX === 'number' && event.clientX > 0) {
+            clickX = event.clientX;
+            clickY = event.clientY;
+          } else if (event.touches && event.touches[0]) {
+            clickX = event.touches[0].clientX;
+            clickY = event.touches[0].clientY;
+          }
         }
+
+        animateFlyingCrystal(clickX, clickY, crystalsCount);
 
         saveState();
         renderDashboard();
         updateProfileCardBalances();
+
         checkMilestoneReminders(childKey, oldCrystals, childData.crystals);
       } else {
         // Uncheck task
         playSound('pop');
         childData.completedTasks[taskId] = false;
-        childData.crystals = Math.max(0, (childData.crystals || 0) - crystalsCount);
+        childData.crystals = Math.max(0, childData.crystals - crystalsCount);
 
         saveState();
         renderDashboard();
