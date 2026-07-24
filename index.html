@@ -2443,10 +2443,10 @@
       const syncStatusEl = document.getElementById('cloud-sync-status');
       if (syncStatusEl) syncStatusEl.innerText = '🔄 Синхронизация...';
 
-      await pushStateToCloud();
+      // PULL FIRST from cloud to grab the latest numbers from other devices!
       await pullStateFromCloud(true);
 
-      if (syncStatusEl) syncStatusEl.innerText = '✅ Успешно!';
+      if (syncStatusEl) syncStatusEl.innerText = '✅ Обновлено!';
       setTimeout(() => {
         if (syncStatusEl) syncStatusEl.innerText = '☁️ Облако в сети';
       }, 2000);
@@ -2757,16 +2757,15 @@
       }
     }
 
-    function selectProfile(profileKey) {
+    async function selectProfile(profileKey) {
       autoEnterFullscreen();
       initAudio();
       playSound('pop');
       appState.activeProfile = profileKey;
-      
-      // Force instant cloud pull to ensure tablet gets latest data from PC!
-      pullStateFromCloud(true);
+      saveStateLocalOnly();
 
-      saveState();
+      // Pull latest state from cloud first before rendering
+      await pullStateFromCloud(true);
 
       document.body.className = profileKey === 'sofia' ? '' : 'theme-bogdan';
 
