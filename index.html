@@ -1829,9 +1829,12 @@
       </div>
 
       <!-- Shared Schedule Button for Both Children -->
-      <div style="margin-top: 0.8rem; text-align: center;">
+      <div style="margin-top: 0.8rem; display: flex; justify-content: center; gap: 0.8rem; flex-wrap: wrap;">
         <button class="btn-shared-schedule" onclick="showScheduleScreen()">
           <span>📅</span> <span>Общий распорядок дня</span>
+        </button>
+        <button class="btn-shared-schedule" style="background: rgba(56, 189, 248, 0.2); border-color: rgba(56, 189, 248, 0.5);" onclick="manualForceSync()">
+          <span>🔄</span> <span>Обновить с других устройств</span>
         </button>
       </div>
     </div>
@@ -2718,6 +2721,10 @@
       initAudio();
       playSound('pop');
       appState.activeProfile = profileKey;
+      
+      // Force instant cloud pull to ensure tablet gets latest data from PC!
+      pullStateFromCloud(true);
+
       saveState();
 
       document.body.className = profileKey === 'sofia' ? '' : 'theme-bogdan';
