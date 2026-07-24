@@ -2765,11 +2765,79 @@
       });
     }
 
-    function toggleTask(taskId, crystalsCount, event) {
-      executeToggleTask(taskId, crystalsCount, event);
+    function getConfirmationQuestion(title) {
+      const lower = (title || '').toLowerCase();
+      if (lower.includes('зубы')) return 'Точно? Вы точно почистили зубы?';
+      if (lower.includes('кровать')) return 'Точно? Вы точно застелили кровать?';
+      if (lower.includes('одеться')) return 'Точно? Вы точно оделись на прогулку?';
+      if (lower.includes('раздеться')) return 'Точно? Вы точно разделись после улицы?';
+      if (lower.includes('игрушки')) return 'Точно? Вы точно собрали игрушки?';
+      if (lower.includes('прописи')) return 'Точно? Вы точно пописали прописи?';
+      if (lower.includes('книги') || lower.includes('чтение')) return 'Точно? Вы точно почитали книгу?';
+      if (lower.includes('математик')) return 'Точно? Вы точно позанимались математикой?';
+      if (lower.includes('английск')) return 'Точно? Вы точно позанимались английским?';
+      if (lower.includes('растяжке')) return 'Точно? Вы точно позанимались растяжкой?';
+      if (lower.includes('баланс-борд')) return 'Точно? Вы точно позанимались на баланс-борде?';
+      if (lower.includes('шахматы')) return 'Точно? Вы точно поиграли с папой в шахматы?';
+      if (lower.includes('укулеле')) return 'Точно? Вы точно поиграли на укулеле?';
+      if (lower.includes('зарядка')) return 'Точно? Вы точно сделали утреннюю зарядку?';
+      if (lower.includes('глаз')) return 'Точно? Вы точно сделали гимнастику для глаз?';
+      if (lower.includes('рюкзак')) return 'Точно? Вы точно собрали рюкзак на завтра?';
+      if (lower.includes('рисование')) return 'Точно? Вы точно порисовали?';
+      if (lower.includes('лепка')) return 'Точно? Вы точно полепили из пластилина?';
+      if (lower.includes('пазл')) return 'Точно? Вы точно собрали пазл?';
+      if (lower.includes('пособи')) return 'Точно? Вы точно позанимались с пособием?';
+      if (lower.includes('лфк')) return 'Точно? Вы точно позанимались ЛФК для стоп?';
+
+      return `Точно? Вы точно выполнили: «${title}»?`;
     }
 
-    function executeToggleTask(taskId, crystalsCount, event) {
+    function toggleTask(taskId, crystalsCount, event, taskTitle, taskEmoji) {
+      initAudio();
+      const childKey = appState.activeProfile;
+      const childData = appState[childKey];
+      if (!childData.completedTasks) childData.completedTasks = {};
+
+      const isCurrentlyDone = !!childData.completedTasks[taskId];
+
+      if (!isCurrentlyDone) {
+        playSound('pop');
+
+        // Extract touch/mouse coordinates before modal opens
+        let clickX = window.innerWidth / 2;
+        let clickY = window.innerHeight / 2;
+        if (event) {
+          if (typeof event.clientX === 'number' && event.clientX > 0) {
+            clickX = event.clientX;
+            clickY = event.clientY;
+          } else if (event.touches && event.touches[0]) {
+            clickX = event.touches[0].clientX;
+            clickY = event.touches[0].clientY;
+          }
+        }
+
+        const emojiEl = document.getElementById('task-confirm-modal-emoji');
+        const questionEl = document.getElementById('task-confirm-modal-question');
+        const yesBtn = document.getElementById('btn-confirm-task-yes');
+
+        if (emojiEl) emojiEl.innerText = taskEmoji || '🤔';
+        if (questionEl) questionEl.innerText = getConfirmationQuestion(taskTitle || '');
+
+        if (yesBtn) {
+          yesBtn.onclick = () => {
+            closeModal('modal-task-confirm');
+            executeToggleTask(taskId, crystalsCount, clickX, clickY);
+          };
+        }
+
+        openModal('modal-task-confirm');
+      } else {
+        // Un-checking task directly
+        executeToggleTask(taskId, crystalsCount, null, null);
+      }
+    }
+
+    function executeToggleTask(taskId, crystalsCount, clickX, clickY) {
       initAudio();
       const childKey = appState.activeProfile;
       const childData = appState[childKey];
@@ -2783,20 +2851,10 @@
         childData.completedTasks[taskId] = true;
         childData.crystals += crystalsCount;
 
-        // Determine coordinates for flying animation with reliable fallback
-        let clickX = window.innerWidth / 2;
-        let clickY = window.innerHeight / 2;
-        if (event) {
-          if (typeof event.clientX === 'number' && event.clientX > 0) {
-            clickX = event.clientX;
-            clickY = event.clientY;
-          } else if (event.touches && event.touches[0]) {
-            clickX = event.touches[0].clientX;
-            clickY = event.touches[0].clientY;
-          }
-        }
+        const posX = (typeof clickX === 'number' && clickX > 0) ? clickX : window.innerWidth / 2;
+        const posY = (typeof clickY === 'number' && clickY > 0) ? clickY : window.innerHeight / 2;
 
-        animateFlyingCrystal(clickX, clickY, crystalsCount);
+        animateFlyingCrystal(posX, posY, crystalsCount);
 
         saveState();
         renderDashboard();
