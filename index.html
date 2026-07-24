@@ -701,15 +701,51 @@
     .time-badge {
       display: inline-flex;
       align-items: center;
-      gap: 0.25rem;
-      background: rgba(251, 191, 36, 0.22);
-      border: 1.5px solid #fbbf24;
-      color: #fef08a;
-      padding: 0.12rem 0.55rem;
+      gap: 0.3rem;
+      font-size: 0.78rem;
+      font-weight: 700;
+      color: #38bdf8;
+      background: rgba(56, 189, 248, 0.15);
+      border: 1px solid rgba(56, 189, 248, 0.3);
+      padding: 0.2rem 0.6rem;
       border-radius: 12px;
+    }
+
+    /* Schedule Timeline Task Recommendations */
+    .schedule-rec-block {
+      margin-top: 0.6rem;
+      padding: 0.5rem 0.8rem;
+      background: rgba(254, 240, 138, 0.1);
+      border: 1.5px solid rgba(254, 240, 138, 0.3);
+      border-radius: 16px;
+    }
+
+    .schedule-rec-title {
+      font-family: var(--font-heading);
       font-size: 0.82rem;
       font-weight: 800;
-      white-space: nowrap;
+      color: #fef08a;
+      margin-bottom: 0.35rem;
+    }
+
+    .schedule-rec-pills {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.4rem;
+    }
+
+    .schedule-rec-pill {
+      font-size: 0.78rem;
+      font-weight: 700;
+      color: #ffffff;
+      background: rgba(255, 255, 255, 0.15);
+      border: 1px solid rgba(255, 255, 255, 0.25);
+      padding: 0.2rem 0.55rem;
+      border-radius: 12px;
+    }
+
+    .schedule-rec-pill strong {
+      color: #38bdf8;
     }
 
     .btn-start-timer {
@@ -2699,7 +2735,6 @@
                 ${task.title}
                 ${task.duration ? `<span class="time-badge" style="margin-left:0.4rem;">⏱️ ${task.duration}</span>` : ''}
               </div>
-              ${task.timeHint ? `<div style="margin-top:0.25rem;"><span class="time-hint-badge">${task.timeHint}</span></div>` : ''}
               <div class="task-reward">+${task.crystals} <span class="crystal-icon-large">💎</span></div>
               ${timerBtnHtml}
             </div>
@@ -3160,19 +3195,77 @@
        ========================================================================== */
 
     const DEFAULT_SCHEDULE = [
-      { id: 'sc_1', start: '08:00', end: '08:20', title: 'Утренний подъём и гигиена', category: 'Гигиена', emoji: '🪥' },
-      { id: 'sc_1_5', start: '08:20', end: '08:35', title: '🤸‍♂️ Утренняя зарядка и разминка', category: 'Зарядка', emoji: '🤸‍♂️' },
-      { id: 'sc_2', start: '08:35', end: '09:00', title: 'Вкусный завтрак', category: 'Приём пищи', emoji: '🍳' },
-      { id: 'sc_3', start: '09:00', end: '10:00', title: 'Учебные и развивающие занятия', category: 'Занятия', emoji: '📚' },
-      { id: 'sc_4', start: '10:00', end: '12:00', title: 'Утренняя прогулка', category: 'Прогулка', emoji: '🌳' },
-      { id: 'sc_5', start: '12:30', end: '13:00', title: 'Обед', category: 'Приём пищи', emoji: '🍲' },
-      { id: 'sc_6', start: '13:00', end: '15:00', title: 'Дневной сон и тихий час', category: 'Дневной сон', emoji: '😴' },
-      { id: 'sc_7', start: '15:30', end: '16:00', title: 'Полдник', category: 'Приём пищи', emoji: '🍎' },
-      { id: 'sc_8', start: '16:00', end: '17:30', title: 'Игры и творчество', category: 'Время для игры', emoji: '🎮' },
-      { id: 'sc_9', start: '17:30', end: '19:00', title: 'Вечерняя прогулка', category: 'Прогулка', emoji: '🌳' },
-      { id: 'sc_10', start: '19:00', end: '19:30', title: 'Семейный ужин', category: 'Приём пищи', emoji: '🍝' },
-      { id: 'sc_11', start: '19:30', end: '20:30', title: 'Свободное время и игры', category: 'Время для игры', emoji: '🧩' },
-      { id: 'sc_12', start: '20:30', end: '21:00', title: 'Подготовка ко сну и сказка на ночь', category: 'Вечерний сон', emoji: '🌙' }
+      { 
+        id: 'sc_1', start: '08:00', end: '08:20', title: 'Утренний подъём и гигиена', category: 'Гигиена', emoji: '🪥',
+        tasksHint: [
+          { emoji: '🪥', title: 'Почистить зубы', crystals: 1 },
+          { emoji: '🛏️', title: 'Застелить кровать', crystals: 1 }
+        ]
+      },
+      { 
+        id: 'sc_1_5', start: '08:20', end: '08:35', title: '🤸‍♂️ Утренняя зарядка и разминка', category: 'Зарядка', emoji: '🤸‍♂️',
+        tasksHint: [
+          { emoji: '🏃‍♂️', title: 'Утренняя зарядка', crystals: 1 }
+        ]
+      },
+      { 
+        id: 'sc_2', start: '08:35', end: '09:00', title: 'Вкусный завтрак', category: 'Приём пищи', emoji: '🍳' 
+      },
+      { 
+        id: 'sc_3', start: '09:00', end: '10:00', title: 'Учебные и развивающие занятия', category: 'Занятия', emoji: '📚',
+        tasksHint: [
+          { emoji: '✍️', title: 'Прописи', crystals: 2 },
+          { emoji: '🔢', title: 'Математика', crystals: 2 },
+          { emoji: '🔤', title: 'Английский', crystals: 2 },
+          { emoji: '📖', title: 'Занятия с пособием', crystals: 2 }
+        ]
+      },
+      { 
+        id: 'sc_4', start: '10:00', end: '12:00', title: 'Утренняя прогулка', category: 'Прогулка', emoji: '🌳',
+        tasksHint: [
+          { emoji: '🧥', title: 'Одеться вовремя', crystals: 1 },
+          { emoji: '👟', title: 'Раздеться после улицы', crystals: 1 }
+        ]
+      },
+      { 
+        id: 'sc_5', start: '12:30', end: '13:00', title: 'Обед', category: 'Приём пищи', emoji: '🍲' 
+      },
+      { 
+        id: 'sc_6', start: '13:00', end: '15:00', title: 'Дневной сон и тихий час', category: 'Дневной сон', emoji: '😴' 
+      },
+      { 
+        id: 'sc_7', start: '15:30', end: '16:00', title: 'Полдник', category: 'Приём пищи', emoji: '🍎' 
+      },
+      { 
+        id: 'sc_8', start: '16:00', end: '17:30', title: 'Игры и творчество', category: 'Время для игры', emoji: '🎮',
+        tasksHint: [
+          { emoji: '🎨', title: 'Рисование / Лепка', crystals: 2 },
+          { emoji: '🤸‍♀️', title: 'Растяжка', crystals: 2 },
+          { emoji: '🦶', title: 'ЛФК для стоп', crystals: 2 },
+          { emoji: '⚖️', title: 'Балансборд', crystals: 2 },
+          { emoji: '📖', title: 'Чтение книги', crystals: 2 }
+        ]
+      },
+      { 
+        id: 'sc_9', start: '17:30', end: '19:00', title: 'Вечерняя прогулка', category: 'Прогулка', emoji: '🌳' 
+      },
+      { 
+        id: 'sc_10', start: '19:00', end: '19:30', title: 'Семейный ужин', category: 'Приём пищи', emoji: '🍝' 
+      },
+      { 
+        id: 'sc_11', start: '19:30', end: '20:30', title: 'Свободное время и игры', category: 'Время для игры', emoji: '🧩',
+        tasksHint: [
+          { emoji: '🧸', title: 'Собрать игрушки', crystals: 1 },
+          { emoji: '🎒', title: 'Собрать рюкзак', crystals: 1 },
+          { emoji: '🧩', title: 'Самостоятельная игра', crystals: 3 }
+        ]
+      },
+      { 
+        id: 'sc_12', start: '20:30', end: '21:00', title: 'Подготовка ко сну и сказка на ночь', category: 'Вечерний сон', emoji: '🌙',
+        tasksHint: [
+          { emoji: '🌙', title: 'Почистить зубы вечер', crystals: 1 }
+        ]
+      }
     ];
 
     let currentScheduleDayView = 'today';
@@ -3186,9 +3279,16 @@
         saveState();
       } else {
         ['today', 'tomorrow'].forEach(dk => {
-          if (appState.schedules[dk] && !appState.schedules[dk].some(i => i.id === 'sc_1_5' || i.title.includes('зарядка'))) {
-            appState.schedules[dk].push({ id: 'sc_1_5', start: '08:20', end: '08:35', title: '🤸‍♂️ Утренняя зарядка и разминка', category: 'Зарядка', emoji: '🤸‍♂️' });
-            appState.schedules[dk].sort((a, b) => a.start.localeCompare(b.start));
+          if (appState.schedules[dk]) {
+            appState.schedules[dk].forEach(existingItem => {
+              const def = DEFAULT_SCHEDULE.find(d => d.id === existingItem.id);
+              if (def && def.tasksHint) existingItem.tasksHint = def.tasksHint;
+            });
+            if (!appState.schedules[dk].some(i => i.id === 'sc_1_5' || i.title.includes('зарядка'))) {
+              const defZar = DEFAULT_SCHEDULE.find(d => d.id === 'sc_1_5');
+              if (defZar) appState.schedules[dk].push(JSON.parse(JSON.stringify(defZar)));
+              appState.schedules[dk].sort((a, b) => a.start.localeCompare(b.start));
+            }
           }
         });
       }
@@ -3261,6 +3361,17 @@
         const isActiveNow = (currentScheduleDayView === 'today') && (curTimeStr >= item.start && curTimeStr < item.end);
         const isPassed = (currentScheduleDayView === 'today') && (curTimeStr >= item.end);
 
+        let recTasksHtml = '';
+        if (item.tasksHint && item.tasksHint.length > 0) {
+          const pills = item.tasksHint.map(t => `<span class="schedule-rec-pill">${t.emoji} ${t.title} <strong>(+${t.crystals} 💎)</strong></span>`).join('');
+          recTasksHtml = `
+            <div class="schedule-rec-block">
+              <div class="schedule-rec-title">💎 В это время можно заработать кристаллы:</div>
+              <div class="schedule-rec-pills">${pills}</div>
+            </div>
+          `;
+        }
+
         const card = document.createElement('div');
         card.className = `timeline-item ${isActiveNow ? 'active-now' : ''} ${isPassed ? 'passed' : ''}`;
 
@@ -3270,6 +3381,7 @@
           <div class="timeline-info">
             <div class="timeline-title">${item.title}</div>
             <span class="timeline-category-tag">${item.category}</span>
+            ${recTasksHtml}
           </div>
           ${isActiveNow ? '<div style="font-size:1.6rem;">🔥</div>' : ''}
         `;
