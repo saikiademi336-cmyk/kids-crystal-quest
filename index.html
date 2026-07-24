@@ -409,21 +409,6 @@
       color: #fef08a;
     }
 
-    .cloud-sync-status-pill {
-      display: inline-flex;
-      align-items: center;
-      gap: 0.4rem;
-      background: rgba(0, 0, 0, 0.35);
-      border: 1.5px solid rgba(52, 211, 153, 0.4);
-      padding: 0.3rem 0.85rem;
-      border-radius: 18px;
-      font-family: var(--font-heading);
-      font-size: 0.82rem;
-      font-weight: 800;
-      color: #34d399;
-      box-shadow: 0 4px 12px rgba(0,0,0,0.3);
-    }
-
     .header-combined-crystals {
       display: inline-flex;
       align-items: center;
@@ -1780,11 +1765,6 @@
       <div class="profiles-header">
         <h1>✨ Кто будет выполнять задачи? ✨</h1>
         <p>Выбери свой профиль, чтобы копить кристаллы!</p>
-        <div style="margin-top: 0.8rem; display: flex; justify-content: center;">
-          <div class="cloud-sync-status-pill" title="Автоматическая синхронизация между ПК и планшетом в реальном времени">
-            🟢 <span>Облако в сети</span>
-          </div>
-        </div>
       </div>
 
       <div class="profiles-grid">
@@ -2315,7 +2295,7 @@
       return JSON.parse(JSON.stringify(defaultState));
     }
 
-    function saveStateLocallyOnly() {
+    function saveState() {
       try {
         const json = JSON.stringify(appState);
         localStorage.setItem(STORAGE_KEY, json);
@@ -2323,11 +2303,6 @@
       } catch (e) {
         console.error('Failed to save state to localStorage', e);
       }
-    }
-
-    function saveState() {
-      saveStateLocallyOnly();
-      pushCloudSyncState();
     }
 
     /* ==========================================================================
@@ -2796,79 +2771,77 @@
       const childKey = appState.activeProfile;
       if (!childKey || !appState[childKey]) return;
       const childData = appState[childKey];
-      if (!childData.completedTasks) childData.completedTasks = {};
 
+      if (!childData.completedTasks) childData.completedTasks = {};
       const isCurrentlyDone = !!childData.completedTasks[taskId];
+
+      const startX = (event && typeof event.clientX === 'number' && event.clientX > 0) ? event.clientX : window.innerWidth / 2;
+      const startY = (event && typeof event.clientY === 'number' && event.clientY > 0) ? event.clientY : window.innerHeight / 2;
 
       if (!isCurrentlyDone) {
         playSound('pop');
-        pendingTaskConfirm = { taskId, crystalsCount };
+        pendingTaskConfirm = { taskId, crystalsCount, startX, startY };
 
         const emojiEl = document.getElementById('task-confirm-modal-emoji');
         const questionEl = document.getElementById('task-confirm-modal-question');
         const yesBtn = document.getElementById('btn-confirm-task-yes');
 
         if (emojiEl) emojiEl.innerText = taskEmoji || '🤔';
-        if (questionEl) questionEl.innerText = `Точно? Вы точно выполнили: «${taskTitle || 'задание'}»?`;
+        if (questionEl) questionEl.innerText = `Точно? Вы точно выполнили: «${taskTitle}»?`;
 
         if (yesBtn) {
-          yesBtn.onclick = (btnEvent) => {
+          yesBtn.onclick = () => {
             closeModal('modal-task-confirm');
             if (pendingTaskConfirm) {
-              const { taskId: pId, crystalsCount: pCost } = pendingTaskConfirm;
+              const { taskId, crystalsCount, startX, startY } = pendingTaskConfirm;
               pendingTaskConfirm = null;
-              executeToggleTask(pId, pCost, btnEvent);
+              executeToggleTask(taskId, crystalsCount, startX, startY);
             }
           };
         }
 
         openModal('modal-task-confirm');
       } else {
-        executeToggleTask(taskId, crystalsCount, event);
+        executeToggleTask(taskId, crystalsCount, startX, startY);
       }
     }
 
-    function executeToggleTask(taskId, crystalsCount, event) {
+    function executeToggleTask(taskId, crystalsCount, startX, startY) {
       initAudio();
       const childKey = appState.activeProfile;
       if (!childKey || !appState[childKey]) return;
       const childData = appState[childKey];
-      if (!childData.completedTasks) childData.completedTasks = {};
 
+      if (!childData.completedTasks) childData.completedTasks = {};
       const isCurrentlyDone = !!childData.completedTasks[taskId];
+      const oldCrystals = childData.crystals || 0;
 
       if (!isCurrentlyDone) {
         // Mark task as done
         childData.completedTasks[taskId] = true;
         childData.crystals = (childData.crystals || 0) + crystalsCount;
 
-        // Safely extract coordinates for flying animation
-        let startX = window.innerWidth / 2;
-        let startY = window.innerHeight / 2;
-        try {
-          if (event && typeof event.clientX === 'number' && event.clientX > 0) {
-            startX = event.clientX;
-            startY = event.clientY;
-          }
-        } catch (e) {}
-
-        try {
+        // Fly animation
+        if (typeof startX === 'number' && typeof startY === 'number') {
           animateFlyingCrystal(startX, startY, crystalsCount);
-        } catch (e) {
+        } else {
           playSound('crystal');
         }
+
+        saveState();
+        renderDashboard();
+        updateProfileCardBalances();
+        checkMilestoneReminders(childKey, oldCrystals, childData.crystals);
       } else {
         // Uncheck task
+        playSound('pop');
         childData.completedTasks[taskId] = false;
         childData.crystals = Math.max(0, (childData.crystals || 0) - crystalsCount);
-        playSound('pop');
-      }
 
-      saveState();
-      if (appState.activeProfile) {
+        saveState();
         renderDashboard();
+        updateProfileCardBalances();
       }
-      updateProfileCardBalances();
     }
 
     function renderShop() {
@@ -3655,150 +3628,6 @@
     }
 
     /* ==========================================================================
-       REAL-TIME MULTI-DEVICE CLOUD SYNC ENGINE
-       ========================================================================== */
-    const SYNC_NAMESPACE = 'saikiademi336_family_v2';
-    const SYNC_INTERVAL_MS = 4500; // Poll every 4.5 seconds
-    let isPushesInFlight = false;
-    let isRemotePollInFlight = false;
-
-    function encodeTasksMask(childKey) {
-      const childData = appState[childKey];
-      if (!childData || !childData.completedTasks) return 0;
-      const list = (TASK_DATA[childKey] || []).map(t => t.id);
-      let mask = 0;
-      list.forEach((id, idx) => {
-        if (childData.completedTasks[id]) {
-          mask |= (1 << idx);
-        }
-      });
-      return mask;
-    }
-
-    function decodeTasksMask(childKey, mask) {
-      const childData = appState[childKey];
-      if (!childData) return false;
-      if (!childData.completedTasks) childData.completedTasks = {};
-      const list = (TASK_DATA[childKey] || []).map(t => t.id);
-      let changed = false;
-      list.forEach((id, idx) => {
-        const isDoneRemote = !!(mask & (1 << idx));
-        if (!!childData.completedTasks[id] !== isDoneRemote) {
-          childData.completedTasks[id] = isDoneRemote;
-          changed = true;
-        }
-      });
-      return changed;
-    }
-
-    async function safeFetchCount(key) {
-      try {
-        const r = await fetch(`https://api.counterapi.dev/v1/${SYNC_NAMESPACE}/${key}`, { mode: 'cors' });
-        if (!r.ok) return null;
-        const d = await r.json();
-        return (d && typeof d.count === 'number') ? d.count : null;
-      } catch (e) {
-        return null;
-      }
-    }
-
-    async function safeSetCount(key, val) {
-      try {
-        await fetch(`https://api.counterapi.dev/v1/${SYNC_NAMESPACE}/${key}/set?count=${val}`, { mode: 'cors' });
-      } catch (e) {}
-    }
-
-    async function pushCloudSyncState() {
-      if (isPushesInFlight) return;
-      isPushesInFlight = true;
-
-      const sofiaCrystals = appState.sofia ? appState.sofia.crystals : 0;
-      const bogdanCrystals = appState.bogdan ? appState.bogdan.crystals : 0;
-      const sofiaMask = encodeTasksMask('sofia');
-      const bogdanMask = encodeTasksMask('bogdan');
-
-      try {
-        await Promise.all([
-          safeSetCount('sofia_crystals', sofiaCrystals),
-          safeSetCount('bogdan_crystals', bogdanCrystals),
-          safeSetCount('sofia_tasks_mask', sofiaMask),
-          safeSetCount('bogdan_tasks_mask', bogdanMask)
-        ]);
-        updateSyncStatusUI('active');
-      } catch (e) {
-        console.warn('Cloud sync push error', e);
-      } finally {
-        isPushesInFlight = false;
-      }
-    }
-
-    async function pollCloudSyncState() {
-      if (isPushesInFlight || isRemotePollInFlight) return;
-      isRemotePollInFlight = true;
-
-      try {
-        const sofC = await safeFetchCount('sofia_crystals');
-        const bogC = await safeFetchCount('bogdan_crystals');
-        const sofM = await safeFetchCount('sofia_tasks_mask');
-        const bogM = await safeFetchCount('bogdan_tasks_mask');
-
-        let stateUpdated = false;
-
-        if (sofC !== null && appState.sofia && appState.sofia.crystals !== sofC) {
-          appState.sofia.crystals = sofC;
-          stateUpdated = true;
-        }
-
-        if (bogC !== null && appState.bogdan && appState.bogdan.crystals !== bogC) {
-          appState.bogdan.crystals = bogC;
-          stateUpdated = true;
-        }
-
-        if (sofM !== null && decodeTasksMask('sofia', sofM)) {
-          stateUpdated = true;
-        }
-
-        if (bogM !== null && decodeTasksMask('bogdan', bogM)) {
-          stateUpdated = true;
-        }
-
-        if (stateUpdated) {
-          saveStateLocallyOnly();
-          if (appState.activeProfile) {
-            renderDashboard();
-          }
-          updateProfileCardBalances();
-        }
-
-        if (sofC !== null || bogC !== null) {
-          updateSyncStatusUI('active');
-        } else {
-          pushCloudSyncState();
-        }
-      } catch (e) {
-        console.warn('Cloud sync poll error', e);
-        updateSyncStatusUI('offline');
-      } finally {
-        isRemotePollInFlight = false;
-      }
-    }
-
-    function updateSyncStatusUI(status) {
-      const pills = document.querySelectorAll('.cloud-sync-status-pill');
-      pills.forEach(p => {
-        if (status === 'active') {
-          p.innerHTML = `🟢 <span>Облако в сети</span>`;
-          p.style.borderColor = 'rgba(52, 211, 153, 0.4)';
-          p.style.color = '#34d399';
-        } else {
-          p.innerHTML = `🟡 <span>Синхронизация...</span>`;
-          p.style.borderColor = 'rgba(251, 191, 36, 0.4)';
-          p.style.color = '#fbbf24';
-        }
-      });
-    }
-
-    /* ==========================================================================
        INITIALIZATION
        ========================================================================== */
     window.addEventListener('DOMContentLoaded', () => {
@@ -3807,8 +3636,6 @@
       updateParentProtectionBtn();
 
       setInterval(renderSchedule, 30000);
-      setInterval(pollCloudSyncState, SYNC_INTERVAL_MS);
-      pollCloudSyncState();
 
       // ALWAYS start on Screen 1 (Profile Selection) when app is launched!
       appState.activeProfile = null;
