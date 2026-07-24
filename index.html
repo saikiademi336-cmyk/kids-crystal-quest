@@ -1895,6 +1895,8 @@
             <div class="active-child-avatar" id="header-avatar">🐧</div>
             <div class="active-child-name" id="header-child-name">Софья</div>
           </div>
+
+          <div class="cloud-sync-badge" id="cloud-sync-status" title="Автоматическая синхронизация между планшетом и ПК">☁️ Облако в сети</div>
         </div>
 
         <div class="header-center">
@@ -2000,6 +2002,20 @@
       <div class="modal-actions">
         <button class="btn-modal btn-modal-cancel" onclick="closeModal('modal-newday')">Отмена</button>
         <button class="btn-modal btn-modal-confirm" onclick="startNewDay()">Да, начать!</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Task Confirmation Modal ("Точно?") -->
+  <div class="modal-overlay" id="modal-task-confirm">
+    <div class="modal-box" style="text-align: center; max-width: 440px;">
+      <div class="modal-icon" id="task-confirm-emoji" style="font-size: 4rem;">🤔</div>
+      <h2 class="modal-title" id="task-confirm-title" style="color: #fef08a; font-size: 1.6rem; margin-bottom: 0.5rem;">Точно выполнены? 🤔</h2>
+      <p class="modal-desc" id="task-confirm-desc" style="font-size: 1.15rem; line-height: 1.5; color: #ffffff; margin-bottom: 1.4rem;"></p>
+      
+      <div class="modal-actions" style="justify-content: center; gap: 0.8rem;">
+        <button class="btn-modal btn-modal-cancel" onclick="closeModal('modal-task-confirm')">Ещё выполняю 😅</button>
+        <button class="btn-modal btn-modal-confirm" id="btn-confirm-task-execute">Да, точно! 🎉</button>
       </div>
     </div>
   </div>
@@ -2278,7 +2294,7 @@
       return JSON.parse(JSON.stringify(defaultState));
     }
 
-    function saveState() {
+    function saveStateLocalOnly() {
       try {
         const json = JSON.stringify(appState);
         localStorage.setItem(STORAGE_KEY, json);
@@ -2286,6 +2302,60 @@
       } catch (e) {
         console.error('Failed to save state to localStorage', e);
       }
+    }
+
+    /* ==========================================================================
+       REAL-TIME CLOUD SYNCHRONIZATION (TABLET <-> DESKTOP)
+       ========================================================================== */
+
+    const CLOUD_SYNC_URL = 'https://kvdb.io/A8Z2k9mN4xQ7w1P3v6L5jR/kids_crystal_quest_state_v2';
+    let isSyncingWithCloud = false;
+
+    async function pushStateToCloud() {
+      try {
+        const syncStatusEl = document.getElementById('cloud-sync-status');
+        if (syncStatusEl) syncStatusEl.innerText = '☁️ Сохранение...';
+
+        appState.lastUpdated = Date.now();
+        await fetch(CLOUD_SYNC_URL, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(appState)
+        });
+
+        if (syncStatusEl) syncStatusEl.innerText = '☁️ Синхронизировано';
+      } catch (err) {
+        const syncStatusEl = document.getElementById('cloud-sync-status');
+        if (syncStatusEl) syncStatusEl.innerText = '☁️ Локально';
+      }
+    }
+
+    async function pullStateFromCloud() {
+      if (isSyncingWithCloud) return;
+      isSyncingWithCloud = true;
+      try {
+        const res = await fetch(CLOUD_SYNC_URL + '?t=' + Date.now());
+        if (res.ok) {
+          const cloudData = await res.json();
+          if (cloudData && cloudData.lastUpdated && cloudData.lastUpdated > (appState.lastUpdated || 0)) {
+            appState = Object.assign({}, defaultState, cloudData);
+            saveStateLocalOnly();
+            updateProfileCardBalances();
+            renderDashboard();
+            const syncStatusEl = document.getElementById('cloud-sync-status');
+            if (syncStatusEl) syncStatusEl.innerText = '☁️ Синхронизировано';
+          }
+        }
+      } catch (err) {
+        // Silent catch for offline or initial load
+      } finally {
+        isSyncingWithCloud = false;
+      }
+    }
+
+    function saveState() {
+      saveStateLocalOnly();
+      pushStateToCloud();
     }
 
     /* ==========================================================================
@@ -2749,7 +2819,38 @@
     }
 
     function toggleTask(taskId, crystalsCount, event) {
-      executeToggleTask(taskId, crystalsCount, event);
+      const childKey = appState.activeProfile;
+      const childData = appState[childKey];
+      const isCurrentlyDone = !!childData.completedTasks[taskId];
+
+      if (!isCurrentlyDone) {
+        playSound('pop');
+        const tasksList = TASK_DATA[childKey] || [];
+        const taskObj = tasksList.find(t => t.id === taskId);
+        const taskTitle = taskObj ? taskObj.title : 'эту задачу';
+        const taskEmoji = taskObj ? taskObj.emoji : '❓';
+
+        const emojiEl = document.getElementById('task-confirm-emoji');
+        const titleEl = document.getElementById('task-confirm-title');
+        const descEl = document.getElementById('task-confirm-desc');
+
+        if (emojiEl) emojiEl.innerText = taskEmoji;
+        if (titleEl) titleEl.innerText = 'Точно выполнены? 🤔';
+        if (descEl) descEl.innerText = `Вы точно выполнили задание «${taskTitle}»?`;
+
+        const confirmBtn = document.getElementById('btn-confirm-task-execute');
+        if (confirmBtn) {
+          confirmBtn.onclick = () => {
+            closeModal('modal-task-confirm');
+            executeToggleTask(taskId, crystalsCount, event);
+          };
+        }
+
+        openModal('modal-task-confirm');
+      } else {
+        // Uncheck task directly
+        executeToggleTask(taskId, crystalsCount, event);
+      }
     }
 
     function executeToggleTask(taskId, crystalsCount, event) {
@@ -3571,6 +3672,10 @@
       generateBgBubbles();
       updateProfileCardBalances();
       updateParentProtectionBtn();
+
+      // Start Cloud Sync auto-polling every 3.5 seconds
+      pullStateFromCloud();
+      setInterval(pullStateFromCloud, 3500);
 
       setInterval(renderSchedule, 30000);
 
