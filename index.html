@@ -2064,6 +2064,17 @@
         <button class="btn-modal btn-modal-cancel" style="max-width: 60px;" onclick="adjustCrystalInput(1)">+1</button>
         <button class="btn-modal btn-modal-cancel" style="max-width: 60px;" onclick="adjustCrystalInput(5)">+5</button>
       </div>
+
+      <div style="margin: 1.2rem 0; padding: 0.8rem; background: rgba(255,255,255,0.08); border-radius: 18px; border: 1.5px dashed rgba(255,255,255,0.25); text-align: center;">
+        <div style="font-family: var(--font-heading); font-size: 0.9rem; font-weight: 800; color: #fef08a; margin-bottom: 0.5rem;">
+          🔄 Мгновенный перенос данных между устройствами:
+        </div>
+        <div style="display: flex; gap: 0.6rem; justify-content: center; flex-wrap: wrap;">
+          <button class="btn-modal btn-modal-cancel" style="font-size: 0.85rem; padding: 0.4rem 0.8rem;" onclick="copySyncCode()">📋 Скопировать код</button>
+          <button class="btn-modal btn-modal-cancel" style="font-size: 0.85rem; padding: 0.4rem 0.8rem;" onclick="pasteSyncCode()">📥 Вставить код</button>
+        </div>
+      </div>
+
       <div class="modal-actions">
         <button class="btn-modal btn-modal-cancel" onclick="closeModal('modal-parent')">Отмена</button>
         <button class="btn-modal btn-modal-confirm" onclick="saveParentCrystals()">Сохранить</button>
@@ -2389,6 +2400,50 @@
       setTimeout(() => {
         if (syncStatusEl) syncStatusEl.innerText = '☁️ Облако в сети';
       }, 2000);
+    }
+
+    function copySyncCode() {
+      try {
+        appState.lastUpdated = Date.now();
+        const jsonStr = JSON.stringify(appState);
+        const b64Data = utf8ToBase64(jsonStr);
+        if (navigator.clipboard && navigator.clipboard.writeText) {
+          navigator.clipboard.writeText(b64Data).then(() => {
+            playSound('pop');
+            alert('✅ Код данных скопирован в буфер обмена!\n\nТеперь откройте сайт на компьютере, нажмите на кристаллы -> «Вставить код»!');
+          }).catch(() => {
+            prompt('Скопируйте этот код вручную для переноса на другое устройство:', b64Data);
+          });
+        } else {
+          prompt('Скопируйте этот код вручную для переноса на другое устройство:', b64Data);
+        }
+      } catch (e) {
+        alert('Ошибка при генерации кода: ' + e.message);
+      }
+    }
+
+    function pasteSyncCode() {
+      const input = prompt('Вставьте скопированный код данных с другого устройства:');
+      if (!input || !input.trim()) return;
+
+      try {
+        const jsonStr = base64ToUtf8(input.trim());
+        const cloudData = JSON.parse(jsonStr);
+        if (cloudData && (cloudData.sofia || cloudData.bogdan)) {
+          appState = Object.assign({}, defaultState, cloudData);
+          saveStateLocalOnly();
+          pushStateToCloud();
+          updateProfileCardBalances();
+          renderDashboard();
+          playSound('fanfare');
+          closeModal('modal-parent');
+          alert('🎉 Данные успешно перенесены!');
+        } else {
+          alert('❌ Неверный формат кода.');
+        }
+      } catch (e) {
+        alert('❌ Ошибка при распаковке кода. Убедитесь, что вставили скопированную строку полностью.');
+      }
     }
 
     function saveState() {
