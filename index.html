@@ -1985,6 +1985,9 @@
       <p class="modal-desc" id="parent-check-action-desc">Решите пример на умножение, чтобы подтвердить действие:</p>
       
       <div class="parent-math-question" id="parent-math-question">6 × 7 = ?</div>
+      <div id="parent-attempts-indicator" style="font-family: var(--font-heading); font-size: 0.95rem; font-weight: 800; color: #fef08a; margin-bottom: 1rem;">
+        Осталось попыток: <span id="parent-attempts-count" style="color: #34d399;">2</span> из 2
+      </div>
       <div class="parent-math-options" id="parent-math-options"></div>
 
       <div class="modal-actions" style="margin-top: 1.5rem;">
@@ -2989,12 +2992,22 @@
       }
     }
 
+    let parentAuthWrongAttempts = 0;
+    const MAX_PARENT_ATTEMPTS = 2;
+
     function generateMultiplicationChallenge() {
+      parentAuthWrongAttempts = 0;
+      updateAttemptsUI();
+
       const num1 = Math.floor(Math.random() * 6) + 4; // 4..9
       const num2 = Math.floor(Math.random() * 6) + 3; // 3..8
       const correctAnswer = num1 * num2;
 
-      document.getElementById('parent-math-question').innerText = `${num1} × ${num2} = ?`;
+      const qEl = document.getElementById('parent-math-question');
+      if (qEl) {
+        qEl.innerText = `${num1} × ${num2} = ?`;
+        qEl.style.color = '#38bdf8';
+      }
 
       const options = new Set([correctAnswer]);
       while (options.size < 4) {
@@ -3011,20 +3024,62 @@
         const btn = document.createElement('button');
         btn.className = 'btn-math-opt';
         btn.innerText = opt;
-        btn.onclick = () => checkMultiplicationAnswer(opt, correctAnswer);
+        btn.onclick = () => checkMultiplicationAnswer(opt, correctAnswer, btn);
         container.appendChild(btn);
       });
     }
 
-    function checkMultiplicationAnswer(selected, correct) {
+    function updateAttemptsUI() {
+      const attemptsCountEl = document.getElementById('parent-attempts-count');
+      const attemptsIndEl = document.getElementById('parent-attempts-indicator');
+      const remaining = Math.max(0, MAX_PARENT_ATTEMPTS - parentAuthWrongAttempts);
+
+      if (attemptsCountEl) {
+        attemptsCountEl.innerText = remaining;
+        attemptsCountEl.style.color = remaining === 1 ? '#f59e0b' : (remaining === 0 ? '#f87171' : '#34d399');
+      }
+      if (attemptsIndEl) {
+        attemptsIndEl.style.display = 'block';
+      }
+    }
+
+    function checkMultiplicationAnswer(selected, correct, btnEl) {
       initAudio();
       if (selected === correct) {
         onParentAuthSuccess();
       } else {
         playSound('pop');
+        parentAuthWrongAttempts++;
+        updateAttemptsUI();
+
+        if (btnEl) {
+          btnEl.disabled = true;
+          btnEl.style.opacity = '0.35';
+          btnEl.style.textDecoration = 'line-through';
+        }
+
         const qEl = document.getElementById('parent-math-question');
-        qEl.style.color = '#f87171';
-        setTimeout(() => { qEl.style.color = '#38bdf8'; }, 400);
+        if (qEl) {
+          qEl.style.color = '#f87171';
+          setTimeout(() => { if (qEl) qEl.style.color = '#38bdf8'; }, 400);
+        }
+
+        if (parentAuthWrongAttempts >= MAX_PARENT_ATTEMPTS) {
+          // Lockout - reset pending action and close modal after warning!
+          setTimeout(() => {
+            playSound('pop');
+            pendingParentAction = null;
+            closeModal('modal-parent-check');
+            
+            const descEl = document.getElementById('purchase-modal-desc');
+            const titleEl = document.getElementById('purchase-modal-title');
+            const emojiEl = document.getElementById('purchase-modal-emoji');
+            if (emojiEl) emojiEl.innerText = '🔒';
+            if (titleEl) titleEl.innerText = 'Доступ ограничен';
+            if (descEl) descEl.innerText = 'Использовано 2 неверных попытки. Попросите маму или папу решить пример!';
+            openModal('modal-purchase');
+          }, 350);
+        }
       }
     }
 
