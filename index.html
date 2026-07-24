@@ -2794,28 +2794,30 @@
 
     function toggleTask(taskId, crystalsCount, event, taskTitle, taskEmoji) {
       const childKey = appState.activeProfile;
+      if (!childKey || !appState[childKey]) return;
       const childData = appState[childKey];
+      if (!childData.completedTasks) childData.completedTasks = {};
 
       const isCurrentlyDone = !!childData.completedTasks[taskId];
 
       if (!isCurrentlyDone) {
         playSound('pop');
-        pendingTaskConfirm = { taskId, crystalsCount, event };
+        pendingTaskConfirm = { taskId, crystalsCount };
 
         const emojiEl = document.getElementById('task-confirm-modal-emoji');
         const questionEl = document.getElementById('task-confirm-modal-question');
         const yesBtn = document.getElementById('btn-confirm-task-yes');
 
         if (emojiEl) emojiEl.innerText = taskEmoji || '🤔';
-        if (questionEl) questionEl.innerText = `Точно? Вы точно выполнили: «${taskTitle}»?`;
+        if (questionEl) questionEl.innerText = `Точно? Вы точно выполнили: «${taskTitle || 'задание'}»?`;
 
         if (yesBtn) {
-          yesBtn.onclick = () => {
+          yesBtn.onclick = (btnEvent) => {
             closeModal('modal-task-confirm');
             if (pendingTaskConfirm) {
-              const { taskId, crystalsCount, event } = pendingTaskConfirm;
+              const { taskId: pId, crystalsCount: pCost } = pendingTaskConfirm;
               pendingTaskConfirm = null;
-              executeToggleTask(taskId, crystalsCount, event);
+              executeToggleTask(pId, pCost, btnEvent);
             }
           };
         }
@@ -2829,30 +2831,44 @@
     function executeToggleTask(taskId, crystalsCount, event) {
       initAudio();
       const childKey = appState.activeProfile;
+      if (!childKey || !appState[childKey]) return;
       const childData = appState[childKey];
+      if (!childData.completedTasks) childData.completedTasks = {};
 
       const isCurrentlyDone = !!childData.completedTasks[taskId];
 
       if (!isCurrentlyDone) {
         // Mark task as done
         childData.completedTasks[taskId] = true;
-        childData.crystals += crystalsCount;
+        childData.crystals = (childData.crystals || 0) + crystalsCount;
 
-        // Fly animation
-        if (event && event.clientX) {
-          animateFlyingCrystal(event.clientX, event.clientY, crystalsCount);
-        } else {
+        // Safely extract coordinates for flying animation
+        let startX = window.innerWidth / 2;
+        let startY = window.innerHeight / 2;
+        try {
+          if (event && typeof event.clientX === 'number' && event.clientX > 0) {
+            startX = event.clientX;
+            startY = event.clientY;
+          }
+        } catch (e) {}
+
+        try {
+          animateFlyingCrystal(startX, startY, crystalsCount);
+        } catch (e) {
           playSound('crystal');
         }
       } else {
         // Uncheck task
         childData.completedTasks[taskId] = false;
-        childData.crystals = Math.max(0, childData.crystals - crystalsCount);
+        childData.crystals = Math.max(0, (childData.crystals || 0) - crystalsCount);
         playSound('pop');
       }
 
       saveState();
-      renderDashboard();
+      if (appState.activeProfile) {
+        renderDashboard();
+      }
+      updateProfileCardBalances();
     }
 
     function renderShop() {
@@ -3641,8 +3657,8 @@
     /* ==========================================================================
        REAL-TIME MULTI-DEVICE CLOUD SYNC ENGINE
        ========================================================================== */
-    const SYNC_NAMESPACE = 'saikiademi336_quest';
-    const SYNC_INTERVAL_MS = 2500; // Poll every 2.5 seconds
+    const SYNC_NAMESPACE = 'saikiademi336_family_v2';
+    const SYNC_INTERVAL_MS = 4500; // Poll every 4.5 seconds
     let isPushesInFlight = false;
     let isRemotePollInFlight = false;
 
