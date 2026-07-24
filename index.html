@@ -409,6 +409,21 @@
       color: #fef08a;
     }
 
+    .cloud-sync-status-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.4rem;
+      background: rgba(0, 0, 0, 0.35);
+      border: 1.5px solid rgba(52, 211, 153, 0.4);
+      padding: 0.3rem 0.85rem;
+      border-radius: 18px;
+      font-family: var(--font-heading);
+      font-size: 0.82rem;
+      font-weight: 800;
+      color: #34d399;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+    }
+
     .header-combined-crystals {
       display: inline-flex;
       align-items: center;
@@ -1765,6 +1780,11 @@
       <div class="profiles-header">
         <h1>✨ Кто будет выполнять задачи? ✨</h1>
         <p>Выбери свой профиль, чтобы копить кристаллы!</p>
+        <div style="margin-top: 0.8rem; display: flex; justify-content: center;">
+          <div class="cloud-sync-status-pill" title="Автоматическая синхронизация между ПК и планшетом в реальном времени">
+            🟢 <span>Облако в сети</span>
+          </div>
+        </div>
       </div>
 
       <div class="profiles-grid">
@@ -2295,7 +2315,7 @@
       return JSON.parse(JSON.stringify(defaultState));
     }
 
-    function saveState() {
+    function saveStateLocallyOnly() {
       try {
         const json = JSON.stringify(appState);
         localStorage.setItem(STORAGE_KEY, json);
@@ -2303,6 +2323,11 @@
       } catch (e) {
         console.error('Failed to save state to localStorage', e);
       }
+    }
+
+    function saveState() {
+      saveStateLocallyOnly();
+      pushCloudSyncState();
     }
 
     /* ==========================================================================
@@ -3614,6 +3639,137 @@
     }
 
     /* ==========================================================================
+       REAL-TIME MULTI-DEVICE CLOUD SYNC ENGINE
+       ========================================================================== */
+    const SYNC_NAMESPACE = 'saikiademi336_quest';
+    const SYNC_INTERVAL_MS = 2500; // Poll every 2.5 seconds
+    let isPushesInFlight = false;
+    let isRemotePollInFlight = false;
+
+    function encodeTasksMask(childKey) {
+      const childData = appState[childKey];
+      if (!childData || !childData.completedTasks) return 0;
+      const list = (TASK_DATA[childKey] || []).map(t => t.id);
+      let mask = 0;
+      list.forEach((id, idx) => {
+        if (childData.completedTasks[id]) {
+          mask |= (1 << idx);
+        }
+      });
+      return mask;
+    }
+
+    function decodeTasksMask(childKey, mask) {
+      const childData = appState[childKey];
+      if (!childData) return false;
+      if (!childData.completedTasks) childData.completedTasks = {};
+      const list = (TASK_DATA[childKey] || []).map(t => t.id);
+      let changed = false;
+      list.forEach((id, idx) => {
+        const isDoneRemote = !!(mask & (1 << idx));
+        if (!!childData.completedTasks[id] !== isDoneRemote) {
+          childData.completedTasks[id] = isDoneRemote;
+          changed = true;
+        }
+      });
+      return changed;
+    }
+
+    async function pushCloudSyncState() {
+      if (isPushesInFlight) return;
+      isPushesInFlight = true;
+
+      const sofiaCrystals = appState.sofia ? appState.sofia.crystals : 0;
+      const bogdanCrystals = appState.bogdan ? appState.bogdan.crystals : 0;
+      const sofiaMask = encodeTasksMask('sofia');
+      const bogdanMask = encodeTasksMask('bogdan');
+
+      try {
+        await Promise.all([
+          fetch(`https://api.counterapi.dev/v1/${SYNC_NAMESPACE}/sofia_crystals/set?count=${sofiaCrystals}`),
+          fetch(`https://api.counterapi.dev/v1/${SYNC_NAMESPACE}/bogdan_crystals/set?count=${bogdanCrystals}`),
+          fetch(`https://api.counterapi.dev/v1/${SYNC_NAMESPACE}/sofia_tasks_mask/set?count=${sofiaMask}`),
+          fetch(`https://api.counterapi.dev/v1/${SYNC_NAMESPACE}/bogdan_tasks_mask/set?count=${bogdanMask}`)
+        ]);
+        updateSyncStatusUI('active');
+      } catch (e) {
+        console.warn('Cloud sync push error', e);
+        updateSyncStatusUI('offline');
+      } finally {
+        isPushesInFlight = false;
+      }
+    }
+
+    async function pollCloudSyncState() {
+      if (isPushesInFlight || isRemotePollInFlight) return;
+      isRemotePollInFlight = true;
+
+      try {
+        const [rSofC, rBogC, rSofM, rBogM] = await Promise.all([
+          fetch(`https://api.counterapi.dev/v1/${SYNC_NAMESPACE}/sofia_crystals`),
+          fetch(`https://api.counterapi.dev/v1/${SYNC_NAMESPACE}/bogdan_crystals`),
+          fetch(`https://api.counterapi.dev/v1/${SYNC_NAMESPACE}/sofia_tasks_mask`),
+          fetch(`https://api.counterapi.dev/v1/${SYNC_NAMESPACE}/bogdan_tasks_mask`)
+        ]);
+
+        const dSofC = await rSofC.json();
+        const dBogC = await rBogC.json();
+        const dSofM = await rSofM.json();
+        const dBogM = await rBogM.json();
+
+        let stateUpdated = false;
+
+        if (dSofC.count !== undefined && appState.sofia && appState.sofia.crystals !== dSofC.count) {
+          appState.sofia.crystals = dSofC.count;
+          stateUpdated = true;
+        }
+
+        if (dBogC.count !== undefined && appState.bogdan && appState.bogdan.crystals !== dBogC.count) {
+          appState.bogdan.crystals = dBogC.count;
+          stateUpdated = true;
+        }
+
+        if (dSofM.count !== undefined && decodeTasksMask('sofia', dSofM.count)) {
+          stateUpdated = true;
+        }
+
+        if (dBogM.count !== undefined && decodeTasksMask('bogdan', dBogM.count)) {
+          stateUpdated = true;
+        }
+
+        if (stateUpdated) {
+          saveStateLocallyOnly();
+          if (appState.activeProfile) {
+            renderDashboard();
+          }
+          updateProfileCardBalances();
+        }
+
+        updateSyncStatusUI('active');
+      } catch (e) {
+        console.warn('Cloud sync poll error', e);
+        updateSyncStatusUI('offline');
+      } finally {
+        isRemotePollInFlight = false;
+      }
+    }
+
+    function updateSyncStatusUI(status) {
+      const pills = document.querySelectorAll('.cloud-sync-status-pill');
+      pills.forEach(p => {
+        if (status === 'active') {
+          p.innerHTML = `🟢 <span>Облако в сети</span>`;
+          p.style.borderColor = 'rgba(52, 211, 153, 0.4)';
+          p.style.color = '#34d399';
+        } else {
+          p.innerHTML = `🟡 <span>Синхронизация...</span>`;
+          p.style.borderColor = 'rgba(251, 191, 36, 0.4)';
+          p.style.color = '#fbbf24';
+        }
+      });
+    }
+
+    /* ==========================================================================
        INITIALIZATION
        ========================================================================== */
     window.addEventListener('DOMContentLoaded', () => {
@@ -3622,6 +3778,8 @@
       updateParentProtectionBtn();
 
       setInterval(renderSchedule, 30000);
+      setInterval(pollCloudSyncState, SYNC_INTERVAL_MS);
+      pollCloudSyncState();
 
       // ALWAYS start on Screen 1 (Profile Selection) when app is launched!
       appState.activeProfile = null;
