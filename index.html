@@ -342,15 +342,16 @@
     }
 
     /* Crystal Balance Counter Badge */
+    /* Crystal Balance Counter Badge - Extra Large & Glowing */
     .crystal-counter-badge {
-      background: linear-gradient(135deg, rgba(14, 165, 233, 0.4) 0%, rgba(56, 189, 248, 0.2) 100%);
-      border: 3px solid #38bdf8;
-      box-shadow: 0 0 20px rgba(56, 189, 248, 0.4), inset 0 0 15px rgba(56, 189, 248, 0.3);
-      border-radius: 30px;
-      padding: 0.5rem 1.8rem;
+      background: linear-gradient(135deg, rgba(14, 165, 233, 0.45) 0%, rgba(56, 189, 248, 0.25) 100%);
+      border: 3.5px solid #38bdf8;
+      box-shadow: 0 0 25px rgba(56, 189, 248, 0.5), inset 0 0 20px rgba(56, 189, 248, 0.4);
+      border-radius: 35px;
+      padding: 0.6rem 2.2rem;
       display: flex;
       align-items: center;
-      gap: 0.8rem;
+      gap: 1rem;
       cursor: pointer;
       transition: transform 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
     }
@@ -360,8 +361,8 @@
     }
 
     .crystal-icon {
-      font-size: 2.2rem;
-      filter: drop-shadow(0 0 6px rgba(56, 189, 248, 0.8));
+      font-size: 2.8rem;
+      filter: drop-shadow(0 0 10px rgba(56, 189, 248, 0.9));
       animation: pulseGlow 2s infinite ease-in-out;
     }
 
@@ -372,10 +373,41 @@
 
     .crystal-count-val {
       font-family: var(--font-heading);
-      font-size: 2.2rem;
-      font-weight: 700;
+      font-size: 2.8rem;
+      font-weight: 800;
       color: #ffffff;
-      text-shadow: 0 2px 10px rgba(0,0,0,0.5);
+      text-shadow: 0 2px 12px rgba(0,0,0,0.6);
+    }
+
+    /* Combined Crystal Balances (На двоих) */
+    .combined-crystal-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.6rem;
+      background: linear-gradient(135deg, rgba(168, 85, 247, 0.4) 0%, rgba(56, 189, 248, 0.35) 100%);
+      border: 2.5px solid rgba(255, 255, 255, 0.4);
+      box-shadow: 0 8px 24px rgba(168, 85, 247, 0.35);
+      padding: 0.65rem 1.8rem;
+      border-radius: 28px;
+      font-family: var(--font-heading);
+      font-size: 1.25rem;
+      font-weight: 800;
+      color: #fef08a;
+    }
+
+    .header-combined-crystals {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.4rem;
+      background: rgba(255, 255, 255, 0.15);
+      border: 2px solid rgba(255, 255, 255, 0.3);
+      padding: 0.35rem 0.9rem;
+      border-radius: 18px;
+      font-family: var(--font-heading);
+      font-size: 0.95rem;
+      font-weight: 800;
+      color: #fef08a;
+      white-space: nowrap;
     }
 
     .header-right {
@@ -1733,8 +1765,17 @@
         </div>
       </div>
 
+      <!-- Combined Total Balance for Both Children -->
+      <div style="margin-top: 1.6rem; text-align: center;">
+        <div class="combined-crystal-badge">
+          <span>👨‍👩‍👧‍👦 Общая копилка:</span>
+          <span id="combined-crystals-val" style="font-size: 1.5rem; color: #ffffff;">0</span>
+          <span>💎</span>
+        </div>
+      </div>
+
       <!-- Shared Schedule Button for Both Children -->
-      <div style="margin-top: 2.5rem; text-align: center;">
+      <div style="margin-top: 0.8rem; text-align: center;">
         <button class="btn-shared-schedule" onclick="showScheduleScreen()">
           <span>📅</span> <span>Общий распорядок дня</span>
         </button>
@@ -1806,6 +1847,12 @@
           <div class="crystal-counter-badge" id="crystal-badge" onclick="openParentAdjustModal()" title="Нажми для редактирования баланса">
             <span class="crystal-icon">💎</span>
             <span class="crystal-count-val" id="header-crystal-count">0</span>
+          </div>
+
+          <div class="header-combined-crystals" title="Общий баланс Софьи и Богдана">
+            <span>👨‍👩‍👧‍👦 Вместе:</span>
+            <span id="header-combined-crystals">0</span>
+            <span>💎</span>
           </div>
         </div>
 
@@ -2014,9 +2061,23 @@
       <!-- Current Items List in Editor -->
       <div id="editor-items-list" style="max-height: 240px; overflow-y: auto; margin-bottom: 1.5rem;"></div>
 
-      <div class="modal-actions">
-        <button class="btn-modal btn-modal-cancel" onclick="resetDefaultSchedule()">Восстановить стандартный</button>
-        <button class="btn-modal btn-modal-confirm" onclick="closeModal('modal-schedule-editor')">Готово 👍</button>
+  <!-- Milestone Celebration Modal -->
+  <div class="modal-overlay" id="modal-milestone">
+    <div class="modal-box" style="text-align: center; max-width: 480px;">
+      <div class="modal-icon" id="milestone-modal-emoji" style="font-size: 4rem;">🎉</div>
+      <h2 class="modal-title" id="milestone-modal-title" style="color: #fef08a; font-size: 1.7rem; margin-bottom: 0.5rem;">Ура! Достижение!</h2>
+      <p class="modal-desc" id="milestone-modal-desc" style="font-size: 1.15rem; line-height: 1.5; color: #ffffff; margin-bottom: 1rem;"></p>
+      
+      <div style="margin: 1rem 0 1.5rem; padding: 1rem 1.2rem; background: rgba(255,255,255,0.12); border-radius: 20px; border: 2px solid rgba(255,255,255,0.25); text-align: left;">
+        <div style="font-family: var(--font-heading); font-weight: 800; font-size: 1.05rem; color: #38bdf8; margin-bottom: 0.4rem;">
+          🎁 Доступные награды в магазине:
+        </div>
+        <div id="milestone-modal-items" style="font-size: 0.95rem; font-weight: 700; color: #fef08a; line-height: 1.4;"></div>
+      </div>
+
+      <div class="modal-actions" style="justify-content: center; gap: 0.8rem;">
+        <button class="btn-modal btn-modal-cancel" onclick="closeModal('modal-milestone')">Позже</button>
+        <button class="btn-modal btn-modal-confirm" onclick="closeModal('modal-milestone'); switchTab('shop');">Открыть магазин 🎁</button>
       </div>
     </div>
   </div>
@@ -2080,23 +2141,14 @@
 
     const SHOP_DATA = [
       {
-        tier: 1,
-        categoryTitle: 'За 1 кристалл (Быстрые радости)',
-        items: [
-          { id: 'shop_1_1', title: 'Лечь спать позже', duration: '30 минут', cost: 1, emoji: '🌙' },
-          { id: 'shop_1_2', title: 'Слушать Алису больше', duration: '30 минут', cost: 1, emoji: '📻' },
-          { id: 'shop_1_3', title: 'Дополнительный десерт или фрукт после обеда/ужина', cost: 1, emoji: '🍨' },
-          { id: 'shop_1_4', title: 'Купание в ванне с пеной', cost: 1, emoji: '🧼' },
-          { id: 'shop_1_5', title: 'Дополнительная книга перед сном', cost: 1, emoji: '📖' }
-        ]
-      },
-      {
         tier: 5,
-        categoryTitle: 'За 5 кристаллов (Мелкие радости)',
+        categoryTitle: 'За 5 кристаллов (Быстрые радости)',
         items: [
-          { id: 'shop_5_1', title: 'Дополнительный десерт после обеда/ужина', cost: 5, emoji: '🍨' },
-          { id: 'shop_5_2', title: 'Дополнительная сказка на ночь', cost: 5, emoji: '📖' },
-          { id: 'shop_5_3', title: 'Ванна с пеной', cost: 5, emoji: '🧼' }
+          { id: 'shop_1_1', title: 'Лечь спать позже', duration: '30 минут', cost: 5, emoji: '🌙' },
+          { id: 'shop_1_2', title: 'Слушать Алису больше', duration: '30 минут', cost: 5, emoji: '📻' },
+          { id: 'shop_1_3', title: 'Дополнительный десерт или фрукт после обеда/ужина', cost: 5, emoji: '🍨' },
+          { id: 'shop_1_4', title: 'Купание в ванне с пеной', cost: 5, emoji: '🧼' },
+          { id: 'shop_1_5', title: 'Дополнительная книга перед сном', cost: 5, emoji: '📖' }
         ]
       },
       {
@@ -2415,9 +2467,22 @@
       }
     }
 
+    function updateCombinedCrystals() {
+      const sofiaCrystals = appState.sofia ? appState.sofia.crystals : 0;
+      const bogdanCrystals = appState.bogdan ? appState.bogdan.crystals : 0;
+      const totalCombined = sofiaCrystals + bogdanCrystals;
+
+      const profileCombined = document.getElementById('combined-crystals-val');
+      if (profileCombined) profileCombined.innerText = totalCombined;
+
+      const headerCombined = document.getElementById('header-combined-crystals');
+      if (headerCombined) headerCombined.innerText = totalCombined;
+    }
+
     function updateProfileCardBalances() {
       document.getElementById('profile-card-crystals-sofia').innerText = appState.sofia.crystals;
       document.getElementById('profile-card-crystals-bogdan').innerText = appState.bogdan.crystals;
+      updateCombinedCrystals();
     }
 
     function selectProfile(profileKey) {
@@ -2478,6 +2543,7 @@
     function renderDashboard() {
       const childData = appState[appState.activeProfile];
       document.getElementById('header-crystal-count').innerText = childData.crystals;
+      updateCombinedCrystals();
 
       renderTasks();
       renderSchedule();
