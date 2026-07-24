@@ -153,8 +153,11 @@
     #screen-profiles {
       justify-content: center;
       align-items: center;
-      padding: 2rem;
+      padding: 1.5rem 1rem;
       text-align: center;
+      overflow-y: auto;
+      -webkit-overflow-scrolling: touch;
+      box-sizing: border-box;
     }
 
     .profiles-header {
@@ -1541,52 +1544,58 @@
     @media (orientation: landscape) and (max-height: 900px) {
       #screen-profiles {
         padding: 0.8rem 1rem !important;
-        justify-content: center !important;
+        justify-content: flex-start !important;
         gap: 0.6rem !important;
+        overflow-y: auto !important;
+        -webkit-overflow-scrolling: touch !important;
       }
       .profiles-header {
-        margin-bottom: 0.3rem !important;
+        margin-bottom: 0.4rem !important;
       }
       .profiles-header h1 {
-        font-size: 1.45rem !important;
+        font-size: 1.5rem !important;
         margin-bottom: 0.1rem !important;
       }
       .profiles-header p {
-        font-size: 0.9rem !important;
+        font-size: 0.95rem !important;
       }
       .profiles-grid {
         flex-direction: row !important;
-        gap: 1.5rem !important;
-        max-width: 720px !important;
+        gap: 1.4rem !important;
+        max-width: 780px !important;
       }
       .profile-card {
-        padding: 0.8rem 1.2rem !important;
-        border-radius: 24px !important;
+        padding: 0.9rem 1.4rem !important;
+        border-radius: 26px !important;
       }
       .profile-avatar-wrapper {
-        width: 80px !important;
-        height: 80px !important;
-        font-size: 3rem !important;
+        width: 85px !important;
+        height: 85px !important;
+        font-size: 3.2rem !important;
         margin-bottom: 0.4rem !important;
       }
       .profile-avatar-wrapper svg {
-        width: 60px !important;
-        height: 60px !important;
+        width: 65px !important;
+        height: 65px !important;
       }
       .profile-name {
-        font-size: 1.35rem !important;
+        font-size: 1.4rem !important;
         margin-bottom: 0.1rem !important;
       }
       .profile-stats-pill {
-        margin-top: 0.4rem !important;
-        padding: 0.25rem 0.8rem !important;
-        font-size: 0.95rem !important;
+        margin-top: 0.5rem !important;
+        padding: 0.4rem 1.4rem !important;
+        font-size: 2.2rem !important;
+        border-radius: 28px !important;
+      }
+      .profile-stats-pill span:first-child {
+        font-size: 2.4rem !important;
       }
       .btn-shared-schedule {
-        font-size: 1.05rem !important;
-        padding: 0.55rem 1.5rem !important;
-        border-radius: 20px !important;
-        margin-top: 0.3rem !important;
+        font-size: 1.15rem !important;
+        padding: 0.7rem 1.8rem !important;
+        border-radius: 24px !important;
+        margin-top: 0.4rem !important;
       }
     }
 
