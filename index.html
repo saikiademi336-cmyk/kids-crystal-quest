@@ -258,21 +258,21 @@
       margin-top: 1rem;
       display: flex;
       align-items: center;
-      gap: 0.8rem;
+      gap: 0.9rem;
       font-family: var(--font-heading);
-      font-size: 2.2rem;
+      font-size: 2.8rem;
       font-weight: 900;
       color: #ffffff;
-      background: linear-gradient(135deg, rgba(14, 165, 233, 0.45) 0%, rgba(56, 189, 248, 0.25) 100%);
+      background: linear-gradient(135deg, rgba(14, 165, 233, 0.5) 0%, rgba(56, 189, 248, 0.3) 100%);
       border: 3.5px solid #38bdf8;
-      box-shadow: 0 0 25px rgba(56, 189, 248, 0.5), inset 0 0 18px rgba(56, 189, 248, 0.35);
-      padding: 0.6rem 1.8rem;
-      border-radius: 32px;
+      box-shadow: 0 0 25px rgba(56, 189, 248, 0.55), inset 0 0 20px rgba(56, 189, 248, 0.4);
+      padding: 0.7rem 2.2rem;
+      border-radius: 35px;
     }
 
     .profile-stats-pill span:first-child {
-      font-size: 2.6rem;
-      filter: drop-shadow(0 0 10px rgba(56, 189, 248, 0.9));
+      font-size: 3rem;
+      filter: drop-shadow(0 0 12px rgba(56, 189, 248, 0.9));
       animation: pulseGlow 2s infinite ease-in-out;
     }
 
@@ -1756,7 +1756,6 @@
             </svg>
           </div>
           <div class="profile-name">Софья</div>
-          <div class="profile-age">7 лет</div>
           <div class="profile-stats-pill">
             <span>💎</span> <span id="profile-card-crystals-sofia">0</span>
           </div>
@@ -1766,7 +1765,6 @@
         <div class="profile-card bogdan-card" onclick="selectProfile('bogdan')">
           <div class="profile-avatar-wrapper">🦖</div>
           <div class="profile-name">Богдан</div>
-          <div class="profile-age">4 года</div>
           <div class="profile-stats-pill">
             <span>💎</span> <span id="profile-card-crystals-bogdan">0</span>
           </div>
@@ -1855,12 +1853,6 @@
           <div class="crystal-counter-badge" id="crystal-badge" onclick="openParentAdjustModal()" title="Нажми для редактирования баланса">
             <span class="crystal-icon">💎</span>
             <span class="crystal-count-val" id="header-crystal-count">0</span>
-          </div>
-
-          <div class="header-combined-crystals" title="Общий баланс Софьи и Богдана">
-            <span>👨‍👩‍👧‍👦 Вместе:</span>
-            <span id="header-combined-crystals">0</span>
-            <span>💎</span>
           </div>
         </div>
 
