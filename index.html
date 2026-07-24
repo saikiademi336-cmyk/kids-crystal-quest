@@ -1829,12 +1829,9 @@
       </div>
 
       <!-- Shared Schedule Button for Both Children -->
-      <div style="margin-top: 0.8rem; display: flex; justify-content: center; gap: 0.8rem; flex-wrap: wrap;">
+      <div style="margin-top: 0.8rem; text-align: center;">
         <button class="btn-shared-schedule" onclick="showScheduleScreen()">
           <span>📅</span> <span>Общий распорядок дня</span>
-        </button>
-        <button class="btn-shared-schedule" style="background: rgba(56, 189, 248, 0.2); border-color: rgba(56, 189, 248, 0.5);" onclick="manualForceSync()">
-          <span>🔄</span> <span>Обновить с других устройств</span>
         </button>
       </div>
     </div>
@@ -1898,8 +1895,6 @@
             <div class="active-child-avatar" id="header-avatar">🐧</div>
             <div class="active-child-name" id="header-child-name">Софья</div>
           </div>
-
-          <div class="cloud-sync-badge" id="cloud-sync-status" onclick="manualForceSync()" style="cursor:pointer;" title="Нажмите для мгновенной синхронизации данных с планшетом/ПК">☁️ Облако в сети</div>
         </div>
 
         <div class="header-center">
@@ -2009,20 +2004,6 @@
     </div>
   </div>
 
-  <!-- Task Confirmation Modal ("Точно?") -->
-  <div class="modal-overlay" id="modal-task-confirm">
-    <div class="modal-box" style="text-align: center; max-width: 440px;">
-      <div class="modal-icon" id="task-confirm-emoji" style="font-size: 4rem;">🤔</div>
-      <h2 class="modal-title" id="task-confirm-title" style="color: #fef08a; font-size: 1.6rem; margin-bottom: 0.5rem;">Точно выполнены? 🤔</h2>
-      <p class="modal-desc" id="task-confirm-desc" style="font-size: 1.15rem; line-height: 1.5; color: #ffffff; margin-bottom: 1.4rem;"></p>
-      
-      <div class="modal-actions" style="justify-content: center; gap: 0.8rem;">
-        <button class="btn-modal btn-modal-cancel" onclick="closeModal('modal-task-confirm')">Ещё выполняю 😅</button>
-        <button class="btn-modal btn-modal-confirm" id="btn-confirm-task-execute">Да, точно! 🎉</button>
-      </div>
-    </div>
-  </div>
-
   <!-- Purchase Success Modal -->
   <div class="modal-overlay" id="modal-purchase">
     <div class="modal-box">
@@ -2067,17 +2048,6 @@
         <button class="btn-modal btn-modal-cancel" style="max-width: 60px;" onclick="adjustCrystalInput(1)">+1</button>
         <button class="btn-modal btn-modal-cancel" style="max-width: 60px;" onclick="adjustCrystalInput(5)">+5</button>
       </div>
-
-      <div style="margin: 1.2rem 0; padding: 0.8rem; background: rgba(255,255,255,0.08); border-radius: 18px; border: 1.5px dashed rgba(255,255,255,0.25); text-align: center;">
-        <div style="font-family: var(--font-heading); font-size: 0.9rem; font-weight: 800; color: #fef08a; margin-bottom: 0.5rem;">
-          🔄 Мгновенный перенос данных между устройствами:
-        </div>
-        <div style="display: flex; gap: 0.6rem; justify-content: center; flex-wrap: wrap;">
-          <button class="btn-modal btn-modal-cancel" style="font-size: 0.85rem; padding: 0.4rem 0.8rem;" onclick="copySyncCode()">📋 Скопировать код</button>
-          <button class="btn-modal btn-modal-cancel" style="font-size: 0.85rem; padding: 0.4rem 0.8rem;" onclick="pasteSyncCode()">📥 Вставить код</button>
-        </div>
-      </div>
-
       <div class="modal-actions">
         <button class="btn-modal btn-modal-cancel" onclick="closeModal('modal-parent')">Отмена</button>
         <button class="btn-modal btn-modal-confirm" onclick="saveParentCrystals()">Сохранить</button>
@@ -2142,6 +2112,20 @@
       <!-- Current Items List in Editor -->
       <div id="editor-items-list" style="max-height: 240px; overflow-y: auto; margin-bottom: 1.5rem;"></div>
 
+  <!-- Task Confirmation Modal -->
+  <div class="modal-overlay" id="modal-task-confirm">
+    <div class="modal-box" style="text-align: center; max-width: 440px;">
+      <div class="modal-icon" id="task-confirm-modal-emoji" style="font-size: 4rem;">🤔</div>
+      <h2 class="modal-title" style="color: #fef08a; font-size: 1.7rem; margin-bottom: 0.5rem;">Подтверждение</h2>
+      <p class="modal-desc" id="task-confirm-modal-question" style="font-size: 1.2rem; line-height: 1.5; color: #ffffff; margin-bottom: 1.2rem;"></p>
+
+      <div class="modal-actions" style="justify-content: center; gap: 0.8rem;">
+        <button class="btn-modal btn-modal-cancel" onclick="closeModal('modal-task-confirm')">Ой, нет 🙈</button>
+        <button class="btn-modal btn-modal-confirm" id="btn-confirm-task-yes">Да, точно! 🎉</button>
+      </div>
+    </div>
+  </div>
+
   <!-- Milestone Celebration Modal -->
   <div class="modal-overlay" id="modal-milestone">
     <div class="modal-box" style="text-align: center; max-width: 480px;">
@@ -2176,12 +2160,13 @@
         // 1 Crystal
         { id: 'sof_1_1', title: 'Почистить зубы (утро)', crystals: 1, emoji: '🪥', timeHint: '🌅 Утро (08:00–12:00)' },
         { id: 'sof_1_2', title: 'Почистить зубы (вечер)', crystals: 1, emoji: '🌙', timeHint: '🌙 Вечер (18:00–21:00)' },
-        { id: 'sof_1_3', title: 'Сделать утреннюю зарядку', crystals: 1, emoji: '🏃‍♀️', timeHint: '🌅 Утро (08:20–09:00)' },
+        { id: 'sof_1_3', title: 'Застелить кровать', crystals: 1, emoji: '🛏️', timeHint: '🌅 Утро (08:00–10:00)' },
         { id: 'sof_1_4', title: 'Одеться и собраться на улицу вовремя', crystals: 1, emoji: '👗', timeHint: '☀️ День (10:00–18:00)' },
         { id: 'sof_1_5', title: 'Раздеться после улицы и аккуратно убрать вещи', crystals: 1, emoji: '🧥', timeHint: '☀️ День (12:00–18:00)' },
         { id: 'sof_1_6', title: 'Собрать игрушки сразу после игры', crystals: 1, emoji: '🧸', timeHint: '🌙 Вечер (18:00–20:00)' },
         { id: 'sof_1_7', title: 'Сделать гимнастику для глаз', crystals: 1, emoji: '👀', timeHint: '☀️ День (12:00–16:00)' },
         { id: 'sof_1_8', title: 'Собрать рюкзак на завтра', crystals: 1, emoji: '🎒', timeHint: '🌙 Вечер (19:00–20:30)' },
+        { id: 'sof_1_9', title: 'Утренняя зарядка', crystals: 1, emoji: '🏃‍♀️', timeHint: '🌅 Утро (08:20–09:00)' },
         
         // 2 Crystals
         { id: 'sof_2_1', title: 'Писать прописи', duration: '15 минут', crystals: 2, emoji: '✍️', timeHint: '🌅 Утро (09:00–12:00)' },
@@ -2190,7 +2175,7 @@
         { id: 'sof_2_4', title: 'Занятие английским', duration: '15 минут', crystals: 2, emoji: '🔤', timeHint: '🌅 Утро (09:00–12:00)' },
         { id: 'sof_2_5', title: 'Тренировка по растяжке', duration: '15 минут', crystals: 2, emoji: '🤸‍♀️', timeHint: '☀️ День (16:00–18:00)' },
         { id: 'sof_2_6', title: 'Занятия на баланс-борде', duration: '15 минут', crystals: 2, emoji: '⚖️', timeHint: '☀️ День (16:00–18:00)' },
-        { id: 'sof_2_7', title: 'Поиграть с папой в шахматы', duration: '15 минут', crystals: 2, emoji: '♟️', timeHint: '☀️ День / Вечер (16:00–20:00)' },
+        { id: 'sof_2_7', title: 'Поиграть с папой в шахматы', duration: '15 минут', crystals: 2, emoji: '♟️', timeHint: '☀️ День (15:00–19:00)' },
         { id: 'sof_2_8', title: 'Поиграть на укулеле', duration: '15 минут', crystals: 2, emoji: '🪕', timeHint: '☀️ День (15:00–18:00)' },
         
         // 3 Crystals
@@ -2281,12 +2266,12 @@
       soundEnabled: true,
       parentProtectionEnabled: true,
       sofia: {
-        crystals: 29,
+        crystals: 0,
         completedTasks: {},
         history: []
       },
       bogdan: {
-        crystals: 13,
+        crystals: 0,
         completedTasks: {},
         history: []
       }
@@ -2310,7 +2295,7 @@
       return JSON.parse(JSON.stringify(defaultState));
     }
 
-    function saveStateLocalOnly() {
+    function saveState() {
       try {
         const json = JSON.stringify(appState);
         localStorage.setItem(STORAGE_KEY, json);
@@ -2318,187 +2303,6 @@
       } catch (e) {
         console.error('Failed to save state to localStorage', e);
       }
-    }
-
-    /* ==========================================================================
-       REAL-TIME CLOUD SYNCHRONIZATION (TABLET <-> DESKTOP)
-       ========================================================================== */
-
-    const CLOUD_APP_ID = 'app_kids_crystal_quest_v2';
-    const CLOUD_KEY_ID = 'sofia_bogdan_shared_state';
-    const COUNTER_NS = 'kids_crystal_quest_v2';
-    let isSyncingWithCloud = false;
-
-    function utf8ToBase64(str) {
-      return btoa(encodeURIComponent(str).replace(/%([0-9A-F]{2})/g, (match, p1) => {
-        return String.fromCharCode('0x' + p1);
-      })).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
-    }
-
-    function base64ToUtf8(b64Str) {
-      let b64 = b64Str.replace(/-/g, '+').replace(/_/g, '/');
-      while (b64.length % 4) b64 += '=';
-      return decodeURIComponent(Array.prototype.map.call(atob(b64), (c) => {
-        return '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2);
-      }).join(''));
-    }
-
-    async function pushStateToCloud() {
-      try {
-        const syncStatusEl = document.getElementById('cloud-sync-status');
-        if (syncStatusEl) syncStatusEl.innerText = '☁️ Сохранение...';
-
-        const sofCrystals = appState.sofia ? appState.sofia.crystals : 0;
-        const bogCrystals = appState.bogdan ? appState.bogdan.crystals : 0;
-
-        // Push crystal counts to CounterAPI
-        fetch(`https://api.counterapi.dev/v1/${COUNTER_NS}/sofia_crystals/set?count=${sofCrystals}`).catch(() => {});
-        fetch(`https://api.counterapi.dev/v1/${COUNTER_NS}/bogdan_crystals/set?count=${bogCrystals}`).catch(() => {});
-
-        // Push full JSON state to KeyVal
-        appState.lastUpdated = Date.now();
-        const jsonStr = JSON.stringify(appState);
-        const b64Data = utf8ToBase64(jsonStr);
-
-        const url = `https://keyvalue.immanuel.co/api/KeyVal/UpdateValue/${CLOUD_APP_ID}/${CLOUD_KEY_ID}/${b64Data}`;
-        await fetch(url, { method: 'POST' }).catch(() => {});
-
-        if (syncStatusEl) syncStatusEl.innerText = '☁️ Облако в сети';
-      } catch (err) {
-        console.warn('Cloud push warning:', err);
-      }
-    }
-
-    async function pullStateFromCloud(force = false) {
-      if (isSyncingWithCloud && !force) return;
-      isSyncingWithCloud = true;
-      let updated = false;
-
-      try {
-        // 1. Pull crystal balances from CounterAPI
-        try {
-          const sofRes = await fetch(`https://api.counterapi.dev/v1/${COUNTER_NS}/sofia_crystals?t=${Date.now()}`);
-          const bogRes = await fetch(`https://api.counterapi.dev/v1/${COUNTER_NS}/bogdan_crystals?t=${Date.now()}`);
-
-          if (sofRes.ok) {
-            const sofData = await sofRes.json();
-            if (sofData && typeof sofData.count === 'number' && appState.sofia) {
-              if (appState.sofia.crystals !== sofData.count) {
-                appState.sofia.crystals = sofData.count;
-                updated = true;
-              }
-            }
-          }
-
-          if (bogRes.ok) {
-            const bogData = await bogRes.json();
-            if (bogData && typeof bogData.count === 'number' && appState.bogdan) {
-              if (appState.bogdan.crystals !== bogData.count) {
-                appState.bogdan.crystals = bogData.count;
-                updated = true;
-              }
-            }
-          }
-        } catch (e) {}
-
-        // 2. Pull full JSON state from KeyVal
-        try {
-          const url = `https://keyvalue.immanuel.co/api/KeyVal/GetValue/${CLOUD_APP_ID}/${CLOUD_KEY_ID}?t=${Date.now()}`;
-          const res = await fetch(url);
-          if (res.ok) {
-            const rawVal = await res.json();
-            if (rawVal && typeof rawVal === 'string' && rawVal.length > 5) {
-              const jsonStr = base64ToUtf8(rawVal);
-              const cloudData = JSON.parse(jsonStr);
-              if (cloudData && (cloudData.sofia || cloudData.bogdan)) {
-                const localContent = JSON.stringify({ sofia: appState.sofia, bogdan: appState.bogdan });
-                const cloudContent = JSON.stringify({ sofia: cloudData.sofia, bogdan: cloudData.bogdan });
-
-                if (force || localContent !== cloudContent) {
-                  appState = Object.assign({}, defaultState, cloudData);
-                  updated = true;
-                }
-              }
-            }
-          }
-        } catch (e) {}
-
-        if (updated) {
-          saveStateLocalOnly();
-          updateProfileCardBalances();
-          renderDashboard();
-          const syncStatusEl = document.getElementById('cloud-sync-status');
-          if (syncStatusEl) syncStatusEl.innerText = '☁️ Облако в сети';
-        }
-      } catch (err) {
-        // Silent catch
-      } finally {
-        isSyncingWithCloud = false;
-      }
-    }
-
-    async function manualForceSync() {
-      initAudio();
-      playSound('pop');
-      const syncStatusEl = document.getElementById('cloud-sync-status');
-      if (syncStatusEl) syncStatusEl.innerText = '🔄 Синхронизация...';
-
-      // PULL FIRST from cloud to grab the latest numbers from other devices!
-      await pullStateFromCloud(true);
-
-      if (syncStatusEl) syncStatusEl.innerText = '✅ Обновлено!';
-      setTimeout(() => {
-        if (syncStatusEl) syncStatusEl.innerText = '☁️ Облако в сети';
-      }, 2000);
-    }
-
-    function copySyncCode() {
-      try {
-        appState.lastUpdated = Date.now();
-        const jsonStr = JSON.stringify(appState);
-        const b64Data = utf8ToBase64(jsonStr);
-        if (navigator.clipboard && navigator.clipboard.writeText) {
-          navigator.clipboard.writeText(b64Data).then(() => {
-            playSound('pop');
-            alert('✅ Код данных скопирован в буфер обмена!\n\nТеперь откройте сайт на компьютере, нажмите на кристаллы -> «Вставить код»!');
-          }).catch(() => {
-            prompt('Скопируйте этот код вручную для переноса на другое устройство:', b64Data);
-          });
-        } else {
-          prompt('Скопируйте этот код вручную для переноса на другое устройство:', b64Data);
-        }
-      } catch (e) {
-        alert('Ошибка при генерации кода: ' + e.message);
-      }
-    }
-
-    function pasteSyncCode() {
-      const input = prompt('Вставьте скопированный код данных с другого устройства:');
-      if (!input || !input.trim()) return;
-
-      try {
-        const jsonStr = base64ToUtf8(input.trim());
-        const cloudData = JSON.parse(jsonStr);
-        if (cloudData && (cloudData.sofia || cloudData.bogdan)) {
-          appState = Object.assign({}, defaultState, cloudData);
-          saveStateLocalOnly();
-          pushStateToCloud();
-          updateProfileCardBalances();
-          renderDashboard();
-          playSound('fanfare');
-          closeModal('modal-parent');
-          alert('🎉 Данные успешно перенесены!');
-        } else {
-          alert('❌ Неверный формат кода.');
-        }
-      } catch (e) {
-        alert('❌ Ошибка при распаковке кода. Убедитесь, что вставили скопированную строку полностью.');
-      }
-    }
-
-    function saveState() {
-      saveStateLocalOnly();
-      pushStateToCloud();
     }
 
     /* ==========================================================================
@@ -2762,7 +2566,7 @@
       initAudio();
       playSound('pop');
       appState.activeProfile = profileKey;
-      saveStateLocalOnly();
+      saveState();
 
       document.body.className = profileKey === 'sofia' ? '' : 'theme-bogdan';
 
@@ -2939,7 +2743,7 @@
 
           const card = document.createElement('div');
           card.className = `task-card ${isDone ? 'completed' : ''}`;
-          card.onclick = (e) => toggleTask(task.id, task.crystals, e);
+          card.onclick = (e) => toggleTask(task.id, task.crystals, e, task.title, task.emoji);
 
           card.innerHTML = `
             <div class="task-emoji">${task.emoji}</div>
@@ -2961,37 +2765,38 @@
       });
     }
 
-    function toggleTask(taskId, crystalsCount, event) {
+    let pendingTaskConfirm = null;
+
+    function toggleTask(taskId, crystalsCount, event, taskTitle, taskEmoji) {
       const childKey = appState.activeProfile;
       const childData = appState[childKey];
+
       const isCurrentlyDone = !!childData.completedTasks[taskId];
 
       if (!isCurrentlyDone) {
         playSound('pop');
-        const tasksList = TASK_DATA[childKey] || [];
-        const taskObj = tasksList.find(t => t.id === taskId);
-        const taskTitle = taskObj ? taskObj.title : 'эту задачу';
-        const taskEmoji = taskObj ? taskObj.emoji : '❓';
+        pendingTaskConfirm = { taskId, crystalsCount, event };
 
-        const emojiEl = document.getElementById('task-confirm-emoji');
-        const titleEl = document.getElementById('task-confirm-title');
-        const descEl = document.getElementById('task-confirm-desc');
+        const emojiEl = document.getElementById('task-confirm-modal-emoji');
+        const questionEl = document.getElementById('task-confirm-modal-question');
+        const yesBtn = document.getElementById('btn-confirm-task-yes');
 
-        if (emojiEl) emojiEl.innerText = taskEmoji;
-        if (titleEl) titleEl.innerText = 'Точно выполнены? 🤔';
-        if (descEl) descEl.innerText = `Вы точно выполнили задание «${taskTitle}»?`;
+        if (emojiEl) emojiEl.innerText = taskEmoji || '🤔';
+        if (questionEl) questionEl.innerText = `Точно? Вы точно выполнили: «${taskTitle}»?`;
 
-        const confirmBtn = document.getElementById('btn-confirm-task-execute');
-        if (confirmBtn) {
-          confirmBtn.onclick = () => {
+        if (yesBtn) {
+          yesBtn.onclick = () => {
             closeModal('modal-task-confirm');
-            executeToggleTask(taskId, crystalsCount, event);
+            if (pendingTaskConfirm) {
+              const { taskId, crystalsCount, event } = pendingTaskConfirm;
+              pendingTaskConfirm = null;
+              executeToggleTask(taskId, crystalsCount, event);
+            }
           };
         }
 
         openModal('modal-task-confirm');
       } else {
-        // Uncheck task directly
         executeToggleTask(taskId, crystalsCount, event);
       }
     }
@@ -3437,7 +3242,7 @@
         id: 'sc_1', start: '08:00', end: '08:20', title: 'Утренний подъём и гигиена', category: 'Гигиена', emoji: '🪥',
         tasksHint: [
           { emoji: '🪥', title: 'Почистить зубы', crystals: 1 },
-          { emoji: '🏃‍♀️', title: 'Сделать утреннюю зарядку', crystals: 1 }
+          { emoji: '🛏️', title: 'Застелить кровать', crystals: 1 }
         ]
       },
       { 
@@ -3477,8 +3282,6 @@
       { 
         id: 'sc_8', start: '16:00', end: '17:30', title: 'Игры и творчество', category: 'Время для игры', emoji: '🎮',
         tasksHint: [
-          { emoji: '♟️', title: 'Шахматы с папой', crystals: 2 },
-          { emoji: '🪕', title: 'Игра на укулеле', crystals: 2 },
           { emoji: '🎨', title: 'Рисование / Лепка', crystals: 2 },
           { emoji: '🤸‍♀️', title: 'Растяжка', crystals: 2 },
           { emoji: '🦶', title: 'ЛФК для стоп', crystals: 2 },
@@ -3817,10 +3620,6 @@
       generateBgBubbles();
       updateProfileCardBalances();
       updateParentProtectionBtn();
-
-      // Start Cloud Sync auto-polling every 2.5 seconds
-      pullStateFromCloud();
-      setInterval(pullStateFromCloud, 2500);
 
       setInterval(renderSchedule, 30000);
 
