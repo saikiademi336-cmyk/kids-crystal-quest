@@ -1896,7 +1896,7 @@
             <div class="active-child-name" id="header-child-name">Софья</div>
           </div>
 
-          <div class="cloud-sync-badge" id="cloud-sync-status" title="Автоматическая синхронизация между планшетом и ПК">☁️ Облако в сети</div>
+          <div class="cloud-sync-badge" id="cloud-sync-status" onclick="manualForceSync()" style="cursor:pointer;" title="Нажмите для мгновенной синхронизации данных с планшетом/ПК">☁️ Облако в сети</div>
         </div>
 
         <div class="header-center">
@@ -2332,14 +2332,14 @@
       }
     }
 
-    async function pullStateFromCloud() {
-      if (isSyncingWithCloud) return;
+    async function pullStateFromCloud(force = false) {
+      if (isSyncingWithCloud && !force) return;
       isSyncingWithCloud = true;
       try {
         const res = await fetch(CLOUD_SYNC_URL + '?t=' + Date.now());
         if (res.ok) {
           const cloudData = await res.json();
-          if (cloudData && cloudData.lastUpdated && cloudData.lastUpdated > (appState.lastUpdated || 0)) {
+          if (cloudData && cloudData.lastUpdated && (force || cloudData.lastUpdated > (appState.lastUpdated || 0))) {
             appState = Object.assign({}, defaultState, cloudData);
             saveStateLocalOnly();
             updateProfileCardBalances();
@@ -2353,6 +2353,21 @@
       } finally {
         isSyncingWithCloud = false;
       }
+    }
+
+    async function manualForceSync() {
+      initAudio();
+      playSound('pop');
+      const syncStatusEl = document.getElementById('cloud-sync-status');
+      if (syncStatusEl) syncStatusEl.innerText = '🔄 Синхронизация...';
+
+      await pushStateToCloud();
+      await pullStateFromCloud(true);
+
+      if (syncStatusEl) syncStatusEl.innerText = '✅ Синхронизировано!';
+      setTimeout(() => {
+        if (syncStatusEl) syncStatusEl.innerText = '☁️ Облако в сети';
+      }, 2000);
     }
 
     function saveState() {
