@@ -2340,23 +2340,8 @@
        REAL-TIME CLOUD SYNCHRONIZATION (TABLET <-> DESKTOP)
        ========================================================================== */
 
-    const CLOUD_APP_ID = 'app_kids_crystal_quest_v2';
-    const CLOUD_KEY_ID = 'sofia_bogdan_shared_state';
+    const CLOUD_BLOB_URL = 'https://jsonblob.com/api/jsonBlob/019f9287-fb50-7ac3-ab91-2c249e1050e5';
     let isSyncingWithCloud = false;
-
-    function utf8ToBase64(str) {
-      return btoa(encodeURIComponent(str).replace(/%([0-9A-F]{2})/g, (match, p1) => {
-        return String.fromCharCode('0x' + p1);
-      })).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
-    }
-
-    function base64ToUtf8(b64Str) {
-      let b64 = b64Str.replace(/-/g, '+').replace(/_/g, '/');
-      while (b64.length % 4) b64 += '=';
-      return decodeURIComponent(Array.prototype.map.call(atob(b64), (c) => {
-        return '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2);
-      }).join(''));
-    }
 
     async function pushStateToCloud() {
       try {
@@ -2364,17 +2349,28 @@
         if (syncStatusEl) syncStatusEl.innerText = '☁️ Сохранение...';
 
         appState.lastUpdated = Date.now();
-        const jsonStr = JSON.stringify(appState);
-        const b64Data = utf8ToBase64(jsonStr);
 
-        const url = `https://keyvalue.immanuel.co/api/KeyVal/UpdateValue/${CLOUD_APP_ID}/${CLOUD_KEY_ID}/${b64Data}`;
-        await fetch(url, { method: 'POST' });
+        const res = await fetch(CLOUD_BLOB_URL, {
+          method: 'PUT',
+          headers: {
+            'Content-Type': 'application/json',
+            'Accept': 'application/json'
+          },
+          body: JSON.stringify(appState)
+        });
 
-        if (syncStatusEl) syncStatusEl.innerText = '☁️ Облако в сети';
+        if (res.ok) {
+          if (syncStatusEl) syncStatusEl.innerText = '☁️ В сети';
+          return true;
+        } else {
+          if (syncStatusEl) syncStatusEl.innerText = '☁️ Локально';
+          return false;
+        }
       } catch (err) {
         console.warn('Cloud push warning:', err);
         const syncStatusEl = document.getElementById('cloud-sync-status');
         if (syncStatusEl) syncStatusEl.innerText = '☁️ Локально';
+        return false;
       }
     }
 
@@ -2382,21 +2378,19 @@
       if (isSyncingWithCloud && !force) return;
       isSyncingWithCloud = true;
       try {
-        const url = `https://keyvalue.immanuel.co/api/KeyVal/GetValue/${CLOUD_APP_ID}/${CLOUD_KEY_ID}?t=${Date.now()}`;
-        const res = await fetch(url);
+        const res = await fetch(CLOUD_BLOB_URL + '?t=' + Date.now(), {
+          headers: { 'Accept': 'application/json' }
+        });
         if (res.ok) {
-          const rawVal = await res.json();
-          if (rawVal && typeof rawVal === 'string' && rawVal.length > 5) {
-            const jsonStr = base64ToUtf8(rawVal);
-            const cloudData = JSON.parse(jsonStr);
-            if (cloudData && cloudData.lastUpdated && (force || cloudData.lastUpdated > (appState.lastUpdated || 0))) {
-              appState = Object.assign({}, defaultState, cloudData);
-              saveStateLocalOnly();
-              updateProfileCardBalances();
-              renderDashboard();
-              const syncStatusEl = document.getElementById('cloud-sync-status');
-              if (syncStatusEl) syncStatusEl.innerText = '☁️ Синхронизировано';
-            }
+          const cloudData = await res.json();
+          if (cloudData && cloudData.lastUpdated && (force || cloudData.lastUpdated > (appState.lastUpdated || 0))) {
+            appState = Object.assign({}, defaultState, cloudData);
+            saveStateLocalOnly();
+            updateProfileCardBalances();
+            renderDashboard();
+            const syncStatusEl = document.getElementById('cloud-sync-status');
+            if (syncStatusEl) syncStatusEl.innerText = '☁️ Синхронизировано';
+            return true;
           }
         }
       } catch (err) {
@@ -2404,6 +2398,7 @@
       } finally {
         isSyncingWithCloud = false;
       }
+      return false;
     }
 
     async function manualForceSync() {
@@ -2424,24 +2419,11 @@
       const msgEl = document.getElementById('cloud-sync-modal-msg');
       if (msgEl) msgEl.innerText = '📤 Отправка данных с этого устройства в облако...';
 
-      appState.lastUpdated = Date.now();
-      saveStateLocalOnly();
-
-      try {
-        const jsonStr = JSON.stringify(appState);
-        const b64Data = utf8ToBase64(jsonStr);
-        const url = `https://keyvalue.immanuel.co/api/KeyVal/UpdateValue/${CLOUD_APP_ID}/${CLOUD_KEY_ID}/${b64Data}`;
-        const res = await fetch(url, { method: 'POST' });
-        
-        if (res.ok) {
-          if (msgEl) msgEl.innerText = '✅ Данные с этого устройства успешно сохранены в облаке!';
-          const syncStatusEl = document.getElementById('cloud-sync-status');
-          if (syncStatusEl) syncStatusEl.innerText = '☁️ В сети';
-        } else {
-          if (msgEl) msgEl.innerText = '⚠️ Ошибка сервера при отправке. Проверьте интернет.';
-        }
-      } catch (e) {
-        if (msgEl) msgEl.innerText = '⚠️ Ошибка сети при отправке.';
+      const success = await pushStateToCloud();
+      if (success) {
+        if (msgEl) msgEl.innerText = '✅ Данные с этого устройства успешно сохранены в облаке!';
+      } else {
+        if (msgEl) msgEl.innerText = '⚠️ Ошибка при сохранении в облако. Проверьте интернет-соединение.';
       }
     }
 
@@ -2451,29 +2433,11 @@
       const msgEl = document.getElementById('cloud-sync-modal-msg');
       if (msgEl) msgEl.innerText = '📥 Загрузка данных из облака...';
 
-      try {
-        const url = `https://keyvalue.immanuel.co/api/KeyVal/GetValue/${CLOUD_APP_ID}/${CLOUD_KEY_ID}?t=${Date.now()}`;
-        const res = await fetch(url);
-        if (res.ok) {
-          const rawVal = await res.json();
-          if (rawVal && typeof rawVal === 'string' && rawVal.length > 5) {
-            const jsonStr = base64ToUtf8(rawVal);
-            const cloudData = JSON.parse(jsonStr);
-            if (cloudData) {
-              appState = Object.assign({}, defaultState, cloudData);
-              saveStateLocalOnly();
-              updateProfileCardBalances();
-              renderDashboard();
-              if (msgEl) msgEl.innerText = '✅ Данные успешно загружены и применены!';
-              const syncStatusEl = document.getElementById('cloud-sync-status');
-              if (syncStatusEl) syncStatusEl.innerText = '☁️ Синхронизировано';
-              return;
-            }
-          }
-        }
-        if (msgEl) msgEl.innerText = '⚠️ В облаке пока нет данных. Отправьте их сначала с планшета!';
-      } catch (e) {
-        if (msgEl) msgEl.innerText = '⚠️ Ошибка сети при загрузке из облака.';
+      const success = await pullStateFromCloud(true);
+      if (success) {
+        if (msgEl) msgEl.innerText = '✅ Данные успешно загружены и применены!';
+      } else {
+        if (msgEl) msgEl.innerText = '⚠️ В облаке пока нет более свежих данных. Нажмите «Отправить» на планшете!';
       }
     }
 
